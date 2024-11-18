@@ -73,6 +73,8 @@ body {
     position: absolute;
     z-index: 10;
     cursor: crosshair;
+
+    background-color: #12070f;
 }
 
 .utility-radius {
