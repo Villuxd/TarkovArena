@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarkov Arena Planner</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Tarkov Arena</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Tarkov Arena Planner</h1>
+
+    <h1>Tarkov Arena</h1>
 
     <!-- Map selection buttons -->
     <div class="map-selection">
@@ -17,13 +18,15 @@
         <button onclick="loadMap('skybridge')">Skybridge</button>
     </div>
 
-    <!-- Canvas for the map -->
-    <div id="mapCanvas"></div>
+    <!-- Map canvas for the drag and drop area -->
+    <div id="mapCanvas" class="map-canvas"></div>
 
-    <!-- Draggable items -->
+    <!-- Draggable items (Grenades, Smoke, etc.) -->
     <div class="item-container">
         <div id="smoke" class="draggable-item" draggable="true" ondragstart="drag(event)">Smoke</div>
         <div id="grenade" class="draggable-item" draggable="true" ondragstart="drag(event)">Grenade</div>
+        <div id="flashbang" class="draggable-item" draggable="true" ondragstart="drag(event)">Flash</div>
+        <div id="molotov" class="draggable-item" draggable="true" ondragstart="drag(event)">Molotov</div>
     </div>
 
     <script src="app.js"></script>
