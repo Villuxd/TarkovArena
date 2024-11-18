@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarkov Arena - Map Drawing</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <button id="clear-btn">Clear Everything</button>
+        <button id="eraser-btn">Eraser</button>
+
+        <!-- Map selection buttons -->
+        <button class="map-select" data-map="fort">Fort</button>
+        <button class="map-select" data-map="skybridge">Skybridge</button>
+        <button class="map-select" data-map="bowl">Bowl</button>
+        <button class="map-select" data-map="bay5">Bay5</button>
+
+        <!-- Utility buttons -->
+        <button class="utility-btn" data-utility="flash">Flashbang</button>
+        <button class="utility-btn" data-utility="smoke">Smoke</button>
+        <button class="utility-btn" data-utility="molotov">Molotov</button>
+        <button class="utility-btn" data-utility="frag">Frag</button>
+    </div>
+
+    <!-- Canvas for drawing and placing utilities -->
+    <canvas id="map-canvas" width="800" height="600"></canvas>
+
+    <script src="script.js"></script>
+</body>
+</html>
