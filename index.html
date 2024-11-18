@@ -8,36 +8,34 @@
 </head>
 <body>
     <div class="toolbar">
-        <div class="map-selection">
+        <button id="clear-btn">Clear Everything</button>
+        <div class="map-select-container">
             <button class="map-select" data-map="fort">Fort</button>
             <button class="map-select" data-map="skybridge">Skybridge</button>
             <button class="map-select" data-map="bowl">Bowl</button>
             <button class="map-select" data-map="bay5">Bay5</button>
         </div>
-
-        <div class="utility-selection">
+        <div class="utility-btn-container">
             <button class="utility-btn" data-utility="flash">Flashbang</button>
             <button class="utility-btn" data-utility="smoke">Smoke</button>
             <button class="utility-btn" data-utility="molotov">Molotov</button>
             <button class="utility-btn" data-utility="frag">Frag</button>
         </div>
-
-        <div class="drawing-options">
-            <button class="color-btn" data-color="red">Red</button>
-            <button class="color-btn" data-color="green">Green</button>
-            <button class="color-btn" data-color="blue">Blue</button>
-            <button class="color-btn" data-color="white">White</button>
-
+    </div>
+    <div class="controls">
+        <div class="thickness-container">
             <button class="thickness-btn" data-thickness="small">Small</button>
             <button class="thickness-btn" data-thickness="medium">Medium</button>
             <button class="thickness-btn" data-thickness="big">Big</button>
-
-            <button id="clear-btn">Clear Everything</button>
+        </div>
+        <div class="color-container">
+            <button class="color-btn" data-color="white">White</button>
+            <button class="color-btn" data-color="red">Red</button>
+            <button class="color-btn" data-color="blue">Blue</button>
+            <button class="color-btn" data-color="green">Green</button>
         </div>
     </div>
-
-    <canvas id="map-canvas" width="800" height="500"></canvas>
-
+    <canvas id="map-canvas" width="1200" height="800"></canvas>
     <script src="script.js"></script>
 </body>
 </html>

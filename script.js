@@ -13,11 +13,8 @@ let drawing = false;
 let currentTool = 'pencil'; // Default tool
 let selectedUtility = null; // To store selected utility
 let eraseMode = false; // Eraser flag
-let drawingColor = 'white'; // Default drawing color
-let drawingThickness = 5; // Default thickness (small)
-
-let drawingObjects = []; // Store drawings persistently
 let zoomLevel = 1; // Initial zoom level
+let thickness = 5; // Default thickness of drawing
 
 // Load map into canvas
 function loadMap(mapName) {
@@ -29,7 +26,6 @@ function loadMap(mapName) {
         const width = mapImage.width * ratio;
         const height = mapImage.height * ratio;
         ctx.drawImage(mapImage, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height); // Center the image
-        redrawDrawings(); // Redraw persistent drawings
     };
 }
 
@@ -47,8 +43,6 @@ canvas.addEventListener('mousedown', (e) => {
     if (currentTool === 'pencil' && !eraseMode) {
         drawing = true;
         draw(e);
-    } else if (selectedUtility) {
-        placeUtility(e);
     }
 });
 
@@ -62,7 +56,7 @@ canvas.addEventListener('mouseup', () => {
     drawing = false;
 });
 
-// Drawing function
+// Drawing function with thickness
 function draw(e) {
     if (!drawing) return;
 
@@ -70,28 +64,14 @@ function draw(e) {
     const y = e.offsetY;
 
     ctx.beginPath();
-    ctx.arc(x, y, drawingThickness, 0, Math.PI * 2);
-    ctx.fillStyle = drawingColor;
+    ctx.arc(x, y, thickness, 0, Math.PI * 2);
+    ctx.fillStyle = "#FFFFFF"; // Default white color for drawing
     ctx.fill();
-
-    // Save the drawing for persistence
-    drawingObjects.push({ x, y, thickness: drawingThickness, color: drawingColor });
-}
-
-// Redraw drawings after map load or zoom
-function redrawDrawings() {
-    drawingObjects.forEach(obj => {
-        ctx.beginPath();
-        ctx.arc(obj.x, obj.y, obj.thickness, 0, Math.PI * 2);
-        ctx.fillStyle = obj.color;
-        ctx.fill();
-    });
 }
 
 // Handle clear button
 document.getElementById('clear-btn').addEventListener('click', () => {
     loadMap(currentMap); // Reload map to clear everything except map
-    drawingObjects = []; // Clear drawings array
 });
 
 // Handle eraser tool
@@ -101,31 +81,71 @@ document.getElementById('eraser-btn').addEventListener('click', () => {
     document.getElementById('eraser-btn').style.backgroundColor = eraseMode ? '#9a3c9f' : '#6c2b8e';
 });
 
-// Handle color selection
-document.querySelectorAll('.color-btn').forEach(button => {
+// Utility buttons (Flash, Smoke, Molotov, Frag)
+document.querySelectorAll('.utility-btn').forEach(button => {
     button.addEventListener('click', (e) => {
-        drawingColor = e.target.getAttribute('data-color');
+        selectedUtility = e.target.getAttribute('data-utility');
     });
 });
 
-// Handle thickness selection
+// Draw utility (Smoke, Flash, Frag, Molotov)
+canvas.addEventListener('click', (e) => {
+    if (selectedUtility) {
+        const x = e.offsetX;
+        const y = e.offsetY;
+
+        if (selectedUtility === 'flash') {
+            const flashIcon = new Image();
+            flashIcon.src = 'images/flash.png';
+            flashIcon.onload = () => {
+                ctx.drawImage(flashIcon, x - 15, y - 15, 30, 30); // Adjust size as needed
+            };
+        } else if (selectedUtility === 'smoke') {
+            const smokeIcon = new Image();
+            smokeIcon.src = 'images/smoke.png';
+            smokeIcon.onload = () => {
+                ctx.drawImage(smokeIcon, x - 15, y - 15, 30, 30);
+            };
+        } else if (selectedUtility === 'molotov') {
+            const molotovIcon = new Image();
+            molotovIcon.src = 'images/molotov.png';
+            molotovIcon.onload = () => {
+                ctx.drawImage(molotovIcon, x - 15, y - 15, 30, 30);
+            };
+        } else if (selectedUtility === 'frag') {
+            const fragIcon = new Image();
+            fragIcon.src = 'images/frag.png';
+            fragIcon.onload = () => {
+                ctx.drawImage(fragIcon, x - 15, y - 15, 30, 30);
+            };
+        }
+    }
+});
+
+// Mousewheel zoom functionality
+canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+        zoomLevel += 0.1;
+    } else {
+        zoomLevel = Math.max(0.5, zoomLevel - 0.1);
+    }
+    loadMap(currentMap);
+});
+
+// Handle drawing thickness change
 document.querySelectorAll('.thickness-btn').forEach(button => {
     button.addEventListener('click', (e) => {
-        const thickness = e.target.getAttribute('data-thickness');
-        if (thickness === 'small') {
-            drawingThickness = 5;
-        } else if (thickness === 'medium') {
-            drawingThickness = 10;
-        } else if (thickness === 'big') {
-            drawingThickness = 15;
-        }
+        thickness = parseInt(e.target.getAttribute('data-thickness'));
     });
 });
 
-// Zoom functionality using mousewheel
-canvas.addEventListener('wheel', (e) => {
-    e.preventDefault(); // Prevent page scroll
-    if (e.deltaY < 0) {
-        zoomLevel += 0.1; // Zoom in
-    } else {
-        zoomLevel = Math.max(0.5, zoomLevel - 0.1); // Zoom out (with
+// Color selection for drawing
+document.querySelectorAll('.color-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+        ctx.fillStyle = e.target.getAttribute('data-color');
+    });
+});
+
+// Initial map load
+loadMap(currentMap);
