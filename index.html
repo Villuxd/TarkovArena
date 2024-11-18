@@ -7,20 +7,32 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div id="toolbar">
+        <h1>Tarkov Arena Strategy Planner</h1>
+        <select id="map-selector">
+            <option value="fort">Fort</option>
+            <option value="skybridge">Skybridge</option>
+            <option value="bowl">Bowl</option>
+            <option value="bay5">Bay5</option>
+        </select>
 
-    <!-- Map container with canvas for drawing -->
-    <div id="map-container">
-        <canvas id="draw-canvas" width="800" height="600"></canvas>
+        <button id="clear-btn">Clear Map</button>
+        <button id="eraser-btn">Eraser</button>
+
+        <input type="color" id="color-picker" value="#ff0000"/>
+
+        <div id="tools">
+            <h2>Place Utility</h2>
+            <img src="flashbang-icon.png" class="utility" id="flashbang" draggable="true" alt="Flashbang"/>
+            <img src="smoke-icon.png" class="utility" id="smoke" draggable="true" alt="Smoke"/>
+            <img src="frag-icon.png" class="utility" id="frag" draggable="true" alt="Frag"/>
+            <img src="molotov-icon.png" class="utility" id="molotov" draggable="true" alt="Molotov"/>
+            <img src="player-icon.png" class="utility" id="player" draggable="true" alt="Player"/>
+        </div>
     </div>
 
-    <!-- Drawing and tool options -->
-    <div id="tools">
-        <button id="clear">Clear All</button>
-        <button id="eraser">Eraser</button>
-        <input type="color" id="color-picker" value="#ff0000"/>
-        <br />
-        <img src="flashbang-icon.png" class="grenade" id="flashbang" alt="Flashbang" draggable="true"/>
-        <img src="smoke-icon.png" class="grenade" id="smoke" alt="Smoke Grenade" draggable="true"/>
+    <div id="map-container">
+        <canvas id="map-canvas" width="800" height="600"></canvas>
     </div>
 
     <script src="script.js"></script>

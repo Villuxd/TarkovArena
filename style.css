@@ -1,59 +1,88 @@
-body {
-    font-family: Arial, sans-serif;
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #F3F4F6;
     display: flex;
     justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-color: #f4f4f4;
+    align-items: flex-start;
+    height: 100vh;
+    flex-direction: column;
+    padding: 20px;
+}
+
+#toolbar {
+    display: flex;
+    flex-direction: column;
+    background-color: #FFFFFF;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    width: 300px;
+}
+
+#toolbar h1 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+#toolbar select, #toolbar button, #toolbar input {
+    margin-bottom: 10px;
+    padding: 10px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#tools {
+    margin-top: 10px;
+}
+
+#tools h2 {
+    font-size: 18px;
+    color: #333;
+}
+
+.utility {
+    width: 40px;
+    height: 40px;
+    margin: 5px;
+    cursor: pointer;
 }
 
 #map-container {
     position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #e6e6e6;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     width: 800px;
     height: 600px;
-    background-image: url('bowl-map.jpg'); /* Replace with your map image */
-    background-size: cover;
-    border: 2px solid #000;
 }
 
-#draw-canvas {
+#map-canvas {
     position: absolute;
-    top: 0;
-    left: 0;
     z-index: 10;
     cursor: crosshair;
 }
 
-#tools {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    z-index: 20;
-    background-color: rgba(255, 255, 255, 0.8);
-    padding: 10px;
-    border-radius: 5px;
-}
-
-#tools button, #tools input {
-    margin: 5px;
-    padding: 5px;
-    cursor: pointer;
-}
-
-.grenade {
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-    position: absolute;
-    z-index: 20;
-}
-
-.grenade-radius {
+.utility-radius {
     position: absolute;
     border-radius: 50%;
-    border: 2px solid rgba(0, 255, 0, 0.3);
-    background-color: rgba(0, 255, 0, 0.1);
-    pointer-events: none;
+    background-color: rgba(0, 255, 0, 0.2);
+    border: 2px solid rgba(0, 255, 0, 0.5);
+}
+
+button:hover, input[type="color"]:hover {
+    background-color: #e6e6e6;
+    transition: background-color 0.2s ease;
 }
