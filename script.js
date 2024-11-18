@@ -1,102 +1,111 @@
-const canvas = document.getElementById('mapCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = canvas.parentElement.offsetWidth;
-canvas.height = canvas.parentElement.offsetHeight;
+// Canvas and Context
+const canvas = document.getElementById("map-canvas");
+const ctx = canvas.getContext("2d");
+canvas.width = 800;
+canvas.height = 600;
 
-// Load map images
-const maps = {
-    fort: 'images/fort.png',
-    skybridge: 'images/skybridge.png',
-    bowl: 'images/bowl.png',
-    bay5: 'images/bay5.png'
-};
-let currentMap = maps.fort;
-let zoom = 1;
-let panX = 0, panY = 0;
-let isPanning = false;
-let startX, startY;
+// Variables
+let currentMap = "images/fort.png"; // Default map
+let isDrawing = false;
+let drawColor = "#000000";
+let drawThickness = 2;
+let activeTool = "pencil"; // Default tool
+let panOffset = { x: 0, y: 0 };
+let startPos = null;
 
-// Utility dragging
-const utilities = ['flash', 'frag', 'molotov', 'smoke'];
-let utilityElements = {};
-utilities.forEach(util => {
-    const img = document.getElementById(util);
-    utilityElements[util] = { image: img, x: 0, y: 0, dragging: false };
-});
+// Utility Drag-and-Drop
+document.querySelectorAll(".utility").forEach(utility => {
+    utility.addEventListener("mousedown", (e) => {
+        const img = new Image();
+        img.src = utility.src;
+        img.style.position = "absolute";
+        img.style.left = e.clientX + "px";
+        img.style.top = e.clientY + "px";
+        img.classList.add("draggable");
+        document.body.appendChild(img);
 
-// Drawing tools
-let drawing = false;
-let drawColor = '#000';
-let thickness = 3;
+        const onMouseMove = (moveEvent) => {
+            img.style.left = moveEvent.clientX + "px";
+            img.style.top = moveEvent.clientY + "px";
+        };
 
-// Load map
-function loadMap(mapName) {
-    const mapImg = new Image();
-    mapImg.src = mapName;
-    mapImg.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(mapImg, 0, 0, canvas.width * zoom, canvas.height * zoom);
-    };
-}
+        const onMouseUp = () => {
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+        };
 
-loadMap(currentMap);
-
-// Zoom function
-canvas.addEventListener('wheel', e => {
-    const zoomAmount = e.deltaY > 0 ? 0.9 : 1.1;
-    zoom *= zoomAmount;
-    panX += e.deltaX / zoom;
-    panY += e.deltaY / zoom;
-    loadMap(currentMap);
-});
-
-// Map buttons
-document.querySelectorAll('#map-buttons button').forEach(button => {
-    button.addEventListener('click', () => {
-        currentMap = maps[button.id];
-        zoom = 1; panX = 0; panY = 0;
-        loadMap(currentMap);
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
     });
 });
 
-// Drawing functionality
-canvas.addEventListener('mousedown', e => {
-    drawing = true;
+// Drawing
+canvas.addEventListener("mousedown", (e) => {
+    if (activeTool !== "pencil") return;
+    isDrawing = true;
     ctx.beginPath();
     ctx.moveTo(e.offsetX, e.offsetY);
 });
 
-canvas.addEventListener('mousemove', e => {
-    if (drawing) {
+canvas.addEventListener("mousemove", (e) => {
+    if (isDrawing && activeTool === "pencil") {
         ctx.lineTo(e.offsetX, e.offsetY);
         ctx.strokeStyle = drawColor;
-        ctx.lineWidth = thickness;
+        ctx.lineWidth = drawThickness;
         ctx.stroke();
     }
 });
 
-canvas.addEventListener('mouseup', () => {
-    drawing = false;
+canvas.addEventListener("mouseup", () => {
+    isDrawing = false;
 });
 
-// Hand tool
-document.getElementById('handTool').addEventListener('click', () => {
-    isPanning = !isPanning;
+// Map Buttons
+const mapButtons = document.querySelectorAll(".map-button");
+mapButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        currentMap = `images/${button.id.split("-")[1]}.png`;
+        const mapImage = new Image();
+        mapImage.onload = () => ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+        mapImage.src = currentMap;
+    });
 });
 
-// Change thickness
-document.getElementById('thicknessSmall').addEventListener('click', () => thickness = 3);
-document.getElementById('thicknessMedium').addEventListener('click', () => thickness = 6);
-document.getElementById('thicknessBig').addEventListener('click', () => thickness = 9);
-
-// Color picker
-document.getElementById('colorPicker').addEventListener('click', () => {
-    const color = prompt('Enter a hex color code (e.g., #ff0000):', drawColor);
-    if (color) drawColor = color;
+// Hand Tool
+document.getElementById("hand-tool").addEventListener("click", () => {
+    activeTool = "hand";
+    canvas.style.cursor = "grab";
 });
 
-// Clear canvas
-document.getElementById('clearCanvas').addEventListener('click', () => {
+// Pencil Tool
+document.getElementById("pencil-tool").addEventListener("click", () => {
+    activeTool = "pencil";
+    canvas.style.cursor = "crosshair";
+});
+
+// Thickness
+document.getElementById("small-thickness").addEventListener("click", () => drawThickness = 2);
+document.getElementById("medium-thickness").addEventListener("click", () => drawThickness = 5);
+document.getElementById("big-thickness").addEventListener("click", () => drawThickness = 8);
+
+// Color Picker
+document.getElementById("color-picker").addEventListener("input", (e) => {
+    drawColor = e.target.value;
+});
+
+// Clear Button
+document.getElementById("clear-button").addEventListener("click", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    loadMap(currentMap);
+});
+
+// Zoom
+let zoomScale = 1;
+canvas.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    zoomScale += e.deltaY * -0.01;
+    zoomScale = Math.min(Math.max(zoomScale, 0.5), 2); // Limit zoom
+    ctx.setTransform(zoomScale, 0, 0, zoomScale, 0, 0);
+    const mapImage = new Image();
+    mapImage.src = currentMap;
+    mapImage.onload = () => ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
 });

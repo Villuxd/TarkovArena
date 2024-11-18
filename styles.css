@@ -1,57 +1,59 @@
 body {
     margin: 0;
+    background-color: #1e1e1e;
+    color: #fff;
     font-family: Arial, sans-serif;
-    background-color: #1a1a1a;
-    color: white;
 }
 
-#controls {
+#container {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    padding: 10px;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
 }
 
-#map-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-#map-buttons button {
-    background-color: #0f0;
-    border: none;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-#utility-tools {
+#utility-container {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-right: 20px;
+    position: absolute;
+    top: 50px;
+    left: 20px;
 }
 
-#utility-tools img {
+.utility {
     width: 50px;
     cursor: pointer;
 }
 
-#canvas-container {
+#map-container {
     position: relative;
-    margin: 0 auto;
-    width: 80%;
-    height: 80vh;
-    background-color: #2a2a2a;
-    border: 2px solid #000;
+    margin: auto;
+    width: 800px;
+    height: 600px;
+    border: 2px solid #555;
 }
 
-#mapCanvas {
-    display: block;
+#map-canvas {
     width: 100%;
     height: 100%;
-    background-color: #333;
+    background-color: black;
+}
+
+#tools-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.map-button {
+    padding: 10px;
+    font-size: 16px;
+    background-color: green;
+    color: white;
+    border: none;
+    cursor: pointer;
 }
 
 #bottom-tools {
@@ -59,12 +61,25 @@ body {
     justify-content: center;
     align-items: center;
     gap: 10px;
-    padding: 10px;
-    background-color: #111;
+    margin-top: 10px;
 }
 
-#bottom-tools button {
-    padding: 8px 14px;
-    font-size: 14px;
+.tool-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.tool-button img {
+    width: 30px;
+    height: 30px;
+}
+
+#color-picker {
+    border: none;
+    padding: 0;
+    height: 30px;
+    width: 40px;
     cursor: pointer;
 }
