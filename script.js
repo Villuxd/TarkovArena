@@ -8,23 +8,14 @@ const maps = {
     bay5: 'images/bay5-map.png'
 };
 
-let currentMap = 'fort'; // Default map
+let currentMap = 'fort';
 let drawing = false;
-let currentTool = 'pencil'; // Default tool
-let scale = 1; // Initial zoom level
-let selectedUtility = null; // To store selected utility
-let eraseMode = false; // Eraser flag
-let drawings = []; // Array to store the drawings
-let smokePosition = { x: 50, y: 300 }; // Initial position for smoke button
-let fragPosition = { x: 150, y: 300 }; // Initial position for frag grenade
-let flashPosition = { x: 250, y: 300 }; // Initial position for flashbang
-
-// Utility image paths
-const utilityImages = {
-    smoke: 'images/smoke.png',
-    frag: 'images/frag.png',
-    flash: 'images/flash.png'
-};
+let currentTool = 'pencil'; 
+let selectedUtility = null;
+let eraseMode = false;
+let drawingColor = "#FFFFFF";
+let lineWidth = 5;
+let dragUtility = null;  // Store the dragged utility icon
 
 // Load map into canvas
 function loadMap(mapName) {
@@ -33,27 +24,9 @@ function loadMap(mapName) {
     mapImage.onload = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
         const ratio = Math.min(canvas.width / mapImage.width, canvas.height / mapImage.height);
-        const width = mapImage.width * ratio * scale;  // Apply scale factor for zooming
-        const height = mapImage.height * ratio * scale; // Apply scale factor for zooming
+        const width = mapImage.width * ratio;
+        const height = mapImage.height * ratio;
         ctx.drawImage(mapImage, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height); // Center the image
-        redrawDrawings(); // Redraw all the previous drawings after map is loaded
-        drawUtilities(); // Redraw all utilities (smoke, frag, flash)
-    };
-}
-
-// Draw all utilities (smoke, frag, flash)
-function drawUtilities() {
-    drawUtility(smokePosition.x, smokePosition.y, 'smoke');
-    drawUtility(fragPosition.x, fragPosition.y, 'frag');
-    drawUtility(flashPosition.x, flashPosition.y, 'flash');
-}
-
-// Draw utility icons (smoke, frag, flash)
-function drawUtility(x, y, type) {
-    const img = new Image();
-    img.src = utilityImages[type];
-    img.onload = () => {
-        ctx.drawImage(img, x, y, 50, 50); // Resizable icons (50x50 by default)
     };
 }
 
@@ -66,61 +39,78 @@ document.querySelectorAll('.map-select').forEach(button => {
     });
 });
 
-// Make the utility icons draggable
-let isDragging = false;
-let draggedUtility = null;
-let offsetX, offsetY;
-
-function makeUtilityDraggable(button, position) {
-    button.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        draggedUtility = button.id;
-        offsetX = e.clientX - position.x;
-        offsetY = e.clientY - position.y;
-
-        const mouseMoveHandler = (e) => {
-            if (isDragging) {
-                position.x = e.clientX - offsetX;
-                position.y = e.clientY - offsetY;
-                button.style.left = position.x + 'px';
-                button.style.top = position.y + 'px';
-                loadMap(currentMap); // Redraw map and utilities
-            }
-        };
-
-        const mouseUpHandler = () => {
-            isDragging = false;
-            document.removeEventListener('mousemove', mouseMoveHandler);
-            document.removeEventListener('mouseup', mouseUpHandler);
-        };
-
-        document.addEventListener('mousemove', mouseMoveHandler);
-        document.addEventListener('mouseup', mouseUpHandler);
-    });
-}
-
-// Initialize dragging for all utilities
-makeUtilityDraggable(document.getElementById('smoke-btn'), smokePosition);
-makeUtilityDraggable(document.getElementById('frag-btn'), fragPosition);
-makeUtilityDraggable(document.getElementById('flash-btn'), flashPosition);
-
-// Zoom In functionality using Mouse Wheel
-canvas.addEventListener('wheel', (event) => {
-    event.preventDefault(); // Prevent default scrolling behavior
-
-    if (event.deltaY < 0) {
-        scale += 0.1; // Zoom in
-    } else if (event.deltaY > 0) {
-        if (scale > 0.2) {  // Prevent zooming out too much
-            scale -= 0.1; // Zoom out
-        }
+// Draw on canvas
+canvas.addEventListener('mousedown', (e) => {
+    if (currentTool === 'pencil' && !eraseMode) {
+        drawing = true;
+        draw(e);
     }
-
-    loadMap(currentMap); // Reload map with updated zoom scale
 });
+
+canvas.addEventListener('mousemove', (e) => {
+    if (drawing && currentTool === 'pencil' && !eraseMode) {
+        draw(e);
+    }
+});
+
+canvas.addEventListener('mouseup', () => {
+    drawing = false;
+});
+
+// Drawing function
+function draw(e) {
+    if (!drawing) return;
+
+    const x = e.offsetX;
+    const y = e.offsetY;
+
+    ctx.beginPath();
+    ctx.arc(x, y, lineWidth / 2, 0, Math.PI * 2);
+    ctx.fillStyle = drawingColor;
+    ctx.fill();
+}
 
 // Handle clear button
 document.getElementById('clear-btn').addEventListener('click', () => {
     loadMap(currentMap); // Reload map to clear everything except map
-    drawings = []; // Clear the drawings array
 });
+
+// Handle eraser tool
+document.getElementById('eraser-btn').addEventListener('click', () => {
+    eraseMode = !eraseMode;
+    currentTool = eraseMode ? 'eraser' : 'pencil';
+    document.getElementById('eraser-btn').style.backgroundColor = eraseMode ? '#9a3c9f' : '#6c2b8e';
+});
+
+// Handle dragging utilities
+document.querySelectorAll('.utility-btn').forEach(button => {
+    button.addEventListener('dragstart', (e) => {
+        dragUtility = e.target;
+    });
+});
+
+canvas.addEventListener('dragover', (e) => {
+    e.preventDefault();
+});
+
+canvas.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (dragUtility) {
+        const x = e.offsetX;
+        const y = e.offsetY;
+        const utilityType = dragUtility.getAttribute('id').replace('-btn', '');
+        drawUtility(x, y, utilityType);
+    }
+});
+
+// Draw utility on canvas
+function drawUtility(x, y, type) {
+    const img = new Image();
+    img.src = `images/${type}.png`; // Get the corresponding image
+    img.onload = () => {
+        ctx.drawImage(img, x - img.width / 2, y - img.height / 2);
+    };
+}
+
+// Initial map load
+loadMap(currentMap);

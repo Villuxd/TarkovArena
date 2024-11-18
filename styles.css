@@ -6,29 +6,27 @@
 }
 
 body {
-    background-color: #2c003e; /* Dark Purple */
-    font-family: 'Roboto', sans-serif; /* Clean, modern font */
+    background-color: #2c003e;
+    font-family: 'Arial', sans-serif;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
     height: 100vh;
     color: white;
-    flex-direction: column;
 }
 
 .toolbar {
     position: absolute;
     top: 20px;
+    left: 20px;
     z-index: 5;
     display: flex;
+    flex-direction: column;
     gap: 10px;
-    background-color: #1a1a1a; /* Dark background for the toolbar */
-    padding: 10px;
-    border-radius: 8px;
 }
 
 button {
-    background-color: #6c2b8e; /* Purple button background */
+    background-color: #6c2b8e;
     color: white;
     padding: 10px 15px;
     border: none;
@@ -38,22 +36,63 @@ button {
 }
 
 button:hover {
-    background-color: #9a3c9f; /* Lighter purple on hover */
+    background-color: #9a3c9f;
+}
+
+.map-tabs {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    z-index: 2;
+}
+
+.map-select {
+    background-color: #6c2b8e;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.map-select:hover {
+    background-color: #9a3c9f;
 }
 
 #map-canvas {
-    background-color: #333333; /* Dark gray/black canvas background */
-    border: 2px solid #4a1a67; /* Darker purple border */
+    background-color: #333; /* Darker gray background for the canvas */
+    border: 2px solid #4a1a67;
     cursor: crosshair;
 }
 
-#smoke-btn, #frag-btn, #flash-btn {
+.utility-tabs {
     position: absolute;
-    cursor: grab;
-    width: 50px; /* Default width for all utility icons */
-    height: 50px; /* Default height for all utility icons */
+    left: 20px;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 3;
 }
 
-button:active {
-    cursor: grabbing;
+.utility-btn {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+}
+
+.utility-btn img {
+    width: 100%;
+    height: 100%;
+}
+
+/* Draggable icons */
+.utility-btn[draggable="true"] {
+    cursor: move;
+}
+
+.utility-btn img {
+    cursor: pointer;
 }
