@@ -3,37 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarkov Arena Strategy Planner</title>
+    <title>Tarkov Arena</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="toolbar">
-        <h1>Tarkov Arena Strategy Planner</h1>
-        <select id="map-selector">
-            <option value="fort">Fort</option>
-            <option value="skybridge">Skybridge</option>
-            <option value="bowl">Bowl</option>
-            <option value="bay5">Bay5</option>
-        </select>
-
-        <button id="clear-btn">Clear Map</button>
+    <div class="toolbar">
+        <button id="clear-btn">Clear Everything</button>
         <button id="eraser-btn">Eraser</button>
-
-        <input type="color" id="color-picker" value="#ff0000"/>
-
-        <div id="tools">
-            <h2>Place Utility</h2>
-            <img src="flashbang-icon.png" class="utility" id="flashbang" draggable="true" alt="Flashbang"/>
-            <img src="smoke-icon.png" class="utility" id="smoke" draggable="true" alt="Smoke"/>
-            <img src="frag-icon.png" class="utility" id="frag" draggable="true" alt="Frag"/>
-            <img src="molotov-icon.png" class="utility" id="molotov" draggable="true" alt="Molotov"/>
-            <img src="player-icon.png" class="utility" id="player" draggable="true" alt="Player"/>
-        </div>
+        <button class="map-select" data-map="fort">Fort</button>
+        <button class="map-select" data-map="skybridge">Skybridge</button>
+        <button class="map-select" data-map="bowl">Bowl</button>
+        <button class="map-select" data-map="bay5">Bay5</button>
+        <button class="utility-btn" data-utility="flash">Flashbang</button>
+        <button class="utility-btn" data-utility="smoke">Smoke</button>
+        <button class="utility-btn" data-utility="molotov">Molotov</button>
+        <button class="utility-btn" data-utility="frag">Frag</button>
     </div>
-
-    <div id="map-container">
-        <canvas id="map-canvas" width="800" height="600"></canvas>
-    </div>
+    <canvas id="map-canvas" width="800" height="600"></canvas>
 
     <script src="script.js"></script>
 </body>
