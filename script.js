@@ -1,106 +1,118 @@
 const canvas = document.getElementById('map-canvas');
 const ctx = canvas.getContext('2d');
 
+// Map settings
+const maps = {
+    fort: 'images/fort-map.png',
+    skybridge: 'images/skybridge-map.png',
+    bowl: 'images/bowl-map.png',
+    bay5: 'images/bay5-map.png'
+};
 let currentMap = 'fort';
 let drawings = [];
-let utilities = [];
-let drawing = false;
-let selectedColor = '#FFFFFF';
-let lineThickness = 5;
-let zoomLevel = 1;
-let currentUtilityType = null;
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
 
-// Load map into the canvas
+// Tool settings
+let currentTool = 'pencil';
+let color = '#ffffff';
+let thickness = 3;
+
+// Utilities
+let selectedUtility = null;
+let utilities = [];
+
+// Load map
 function loadMap(mapName) {
-    const mapImage = new Image();
-    mapImage.src = `images/${mapName}-map.png`;
-    mapImage.onload = () => {
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transforms
+    const img = new Image();
+    img.src = maps[mapName];
+    img.onload = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.scale(zoomLevel, zoomLevel);
-        ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
-        redrawUtilities();
+        ctx.save();
+        ctx.translate(offsetX, offsetY);
+        ctx.scale(scale, scale);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         redrawDrawings();
+        redrawUtilities();
+        ctx.restore();
     };
 }
 
 // Redraw drawings
 function redrawDrawings() {
-    drawings.forEach(drawing => {
+    drawings.forEach(({ x, y, color, thickness }) => {
         ctx.beginPath();
-        ctx.arc(drawing.x, drawing.y, drawing.thickness, 0, Math.PI * 2);
-        ctx.fillStyle = drawing.color;
+        ctx.arc(x, y, thickness, 0, Math.PI * 2);
+        ctx.fillStyle = color;
         ctx.fill();
     });
 }
 
 // Redraw utilities
 function redrawUtilities() {
-    utilities.forEach(util => {
+    utilities.forEach(({ type, x, y }) => {
         const img = new Image();
-        img.src = util.src;
-        img.onload = () => {
-            ctx.drawImage(img, util.x, util.y, util.width, util.height);
-        };
+        img.src = `images/${type}.png`;
+        ctx.drawImage(img, x - 25, y - 25, 50, 50);
     });
 }
 
-// Drawing on canvas
-canvas.addEventListener('mousedown', () => (drawing = true));
-canvas.addEventListener('mouseup', () => (drawing = false));
-canvas.addEventListener('mousemove', (e) => {
-    if (!drawing) return;
-    drawings.push({ x: e.offsetX / zoomLevel, y: e.offsetY / zoomLevel, color: selectedColor, thickness: lineThickness });
-    redrawDrawings();
-});
-
-// Utility button clicks
-document.querySelectorAll('.utility-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        currentUtilityType = e.target.id.replace('-btn', '');
-    });
-});
-
-// Add utility on canvas click
-canvas.addEventListener('click', (e) => {
-    if (!currentUtilityType) return;
-    utilities.push({ type: currentUtilityType, src: `images/${currentUtilityType}.png`, x: e.offsetX / zoomLevel - 25, y: e.offsetY / zoomLevel - 25, width: 50, height: 50 });
-    redrawUtilities();
+// Draw on canvas
+canvas.addEventListener('mousedown', (e) => {
+    if (currentTool === 'pencil') {
+        const x = (e.offsetX - offsetX) / scale;
+        const y = (e.offsetY - offsetY) / scale;
+        drawings.push({ x, y, color, thickness });
+        redrawDrawings();
+    } else if (selectedUtility) {
+        const x = (e.offsetX - offsetX) / scale;
+        const y = (e.offsetY - offsetY) / scale;
+        utilities.push({ type: selectedUtility, x, y });
+        selectedUtility = null;
+        redrawUtilities();
+    }
 });
 
 // Zoom functionality
 canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
-    zoomLevel += e.deltaY > 0 ? -0.1 : 0.1;
-    zoomLevel = Math.min(Math.max(zoomLevel, 0.5), 3); // Clamp between 0.5 and 3
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    scale *= delta;
+    offsetX -= (e.offsetX - offsetX) * (delta - 1);
+    offsetY -= (e.offsetY - offsetY) * (delta - 1);
     loadMap(currentMap);
 });
 
-// Color and thickness buttons
-document.getElementById('color-red').addEventListener('click', () => (selectedColor = '#FF0000'));
-document.getElementById('color-green').addEventListener('click', () => (selectedColor = '#00FF00'));
-document.getElementById('color-blue').addEventListener('click', () => (selectedColor = '#0000FF'));
+// Thickness
+document.getElementById('small-thickness').addEventListener('click', () => thickness = 1);
+document.getElementById('medium-thickness').addEventListener('click', () => thickness = 3);
+document.getElementById('large-thickness').addEventListener('click', () => thickness = 5);
 
-document.getElementById('small-thickness').addEventListener('click', () => (lineThickness = 5));
-document.getElementById('medium-thickness').addEventListener('click', () => (lineThickness = 10));
-document.getElementById('big-thickness').addEventListener('click', () => (lineThickness = 15));
+// Color
+document.getElementById('color-picker').addEventListener('input', (e) => color = e.target.value);
 
-// Clear button
+// Clear
 document.getElementById('clear-btn').addEventListener('click', () => {
     drawings = [];
     utilities = [];
     loadMap(currentMap);
 });
 
-// Map selection
-document.querySelectorAll('.map-select').forEach(button => {
-    button.addEventListener('click', (e) => {
-        currentMap = e.target.dataset.map;
+// Map buttons
+document.querySelectorAll('.map-select').forEach(btn => {
+    btn.addEventListener('click', () => {
+        currentMap = btn.dataset.map;
         loadMap(currentMap);
     });
 });
 
-// Load the initial map
+// Utility selection
+document.querySelectorAll('.utility-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        selectedUtility = btn.dataset.utility;
+    });
+});
+
+// Initial map load
 loadMap(currentMap);

@@ -3,49 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarkov Arena</title>
-    <link rel="stylesheet" href="styles.css">
     <meta http-equiv="cache-control" content="no-cache">
     <meta http-equiv="expires" content="0">
     <meta http-equiv="pragma" content="no-cache">
+    <title>Interactive Map</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="toolbar">
-        <!-- Map Tabs -->
-        <div class="map-tabs">
+    <div id="container">
+        <div id="map-buttons">
             <button class="map-select" data-map="fort">Fort</button>
             <button class="map-select" data-map="skybridge">Skybridge</button>
             <button class="map-select" data-map="bowl">Bowl</button>
             <button class="map-select" data-map="bay5">Bay5</button>
         </div>
-
-        <!-- Utility Buttons -->
-        <div class="utility-btns">
-            <img id="flash-btn" class="utility-btn" src="images/flash.png" alt="Flashbang">
-            <img id="smoke-btn" class="utility-btn" src="images/smoke.png" alt="Smoke">
-            <img id="molotov-btn" class="utility-btn" src="images/molotov.png" alt="Molotov">
-            <img id="frag-btn" class="utility-btn" src="images/frag.png" alt="Frag Grenade">
+        <div id="left-panel">
+            <img class="utility-btn" src="images/flash.png" data-utility="flash" draggable="false" alt="Flash">
+            <img class="utility-btn" src="images/frag.png" data-utility="frag" draggable="false" alt="Frag">
+            <img class="utility-btn" src="images/molotov.png" data-utility="molotov" draggable="false" alt="Molotov">
+            <img class="utility-btn" src="images/smoke.png" data-utility="smoke" draggable="false" alt="Smoke">
+        </div>
+        <div id="canvas-container">
+            <canvas id="map-canvas"></canvas>
+            <div id="bottom-panel">
+                <input type="color" id="color-picker">
+                <button id="small-thickness">Small</button>
+                <button id="medium-thickness">Medium</button>
+                <button id="large-thickness">Big</button>
+                <button id="clear-btn">Clear Everything</button>
+            </div>
         </div>
     </div>
-
-    <!-- Canvas -->
-    <canvas id="map-canvas" width="1000" height="600"></canvas>
-
-    <!-- Controls -->
-    <div class="controls">
-        <div class="color-controls">
-            <button class="color-btn" id="color-red"></button>
-            <button class="color-btn" id="color-green"></button>
-            <button class="color-btn" id="color-blue"></button>
-        </div>
-        <div class="thickness-controls">
-            <button class="thickness-btn" id="small-thickness">Small</button>
-            <button class="thickness-btn" id="medium-thickness">Medium</button>
-            <button class="thickness-btn" id="big-thickness">Big</button>
-        </div>
-        <button id="clear-btn">Clear Everything</button>
-    </div>
-
     <script src="script.js"></script>
 </body>
 </html>
