@@ -8,34 +8,40 @@
 </head>
 <body>
     <div class="toolbar">
-        <button id="clear-btn">Clear Everything</button>
-        <div class="map-select-container">
+        <!-- Map Selection (top) -->
+        <div class="map-tabs">
             <button class="map-select" data-map="fort">Fort</button>
             <button class="map-select" data-map="skybridge">Skybridge</button>
             <button class="map-select" data-map="bowl">Bowl</button>
             <button class="map-select" data-map="bay5">Bay5</button>
         </div>
-        <div class="utility-btn-container">
-            <button class="utility-btn" data-utility="flash">Flashbang</button>
-            <button class="utility-btn" data-utility="smoke">Smoke</button>
-            <button class="utility-btn" data-utility="molotov">Molotov</button>
-            <button class="utility-btn" data-utility="frag">Frag</button>
+        
+        <!-- Utility Buttons (left side) -->
+        <div class="utility-btns">
+            <img id="flash-btn" class="utility-btn" src="images/flash.png" alt="Flashbang">
+            <img id="smoke-btn" class="utility-btn" src="images/smoke.png" alt="Smoke">
+            <img id="molotov-btn" class="utility-btn" src="images/molotov.png" alt="Molotov">
+            <img id="frag-btn" class="utility-btn" src="images/frag.png" alt="Frag Grenade">
+        </div>
+        
+        <!-- Drawing Controls (bottom) -->
+        <div class="controls">
+            <div class="color-controls">
+                <button class="color-btn" id="color-red"></button>
+                <button class="color-btn" id="color-green"></button>
+                <button class="color-btn" id="color-blue"></button>
+            </div>
+            <div class="thickness-controls">
+                <button class="thickness-btn" id="small-thickness">Small</button>
+                <button class="thickness-btn" id="medium-thickness">Medium</button>
+                <button class="thickness-btn" id="big-thickness">Big</button>
+            </div>
+            <button id="clear-btn">Clear Everything</button>
         </div>
     </div>
-    <div class="controls">
-        <div class="thickness-container">
-            <button class="thickness-btn" data-thickness="small">Small</button>
-            <button class="thickness-btn" data-thickness="medium">Medium</button>
-            <button class="thickness-btn" data-thickness="big">Big</button>
-        </div>
-        <div class="color-container">
-            <button class="color-btn" data-color="white">White</button>
-            <button class="color-btn" data-color="red">Red</button>
-            <button class="color-btn" data-color="blue">Blue</button>
-            <button class="color-btn" data-color="green">Green</button>
-        </div>
-    </div>
-    <canvas id="map-canvas" width="1200" height="800"></canvas>
+    
+    <canvas id="map-canvas" width="800" height="600"></canvas>
+    
     <script src="script.js"></script>
 </body>
 </html>

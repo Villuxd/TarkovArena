@@ -1,150 +1,118 @@
 const canvas = document.getElementById('map-canvas');
 const ctx = canvas.getContext('2d');
 
-const maps = {
-    fort: 'images/fort-map.png',
-    skybridge: 'images/skybridge-map.png',
-    bowl: 'images/bowl-map.png',
-    bay5: 'images/bay5-map.png'
+// Utility definitions
+const utilities = {
+    flash: { src: 'images/flash.png', x: 0, y: 0, width: 50, height: 50 },
+    smoke: { src: 'images/smoke.png', x: 0, y: 0, width: 50, height: 50, radius: 50 },
+    molotov: { src: 'images/molotov.png', x: 0, y: 0, width: 50, height: 50 },
+    frag: { src: 'images/frag.png', x: 0, y: 0, width: 50, height: 50 }
 };
 
+let currentUtility = null;
 let currentMap = 'fort'; // Default map
 let drawing = false;
 let currentTool = 'pencil'; // Default tool
-let selectedUtility = null; // To store selected utility
-let eraseMode = false; // Eraser flag
-let zoomLevel = 1; // Initial zoom level
-let thickness = 5; // Default thickness of drawing
+let selectedColor = '#FFFFFF'; // Default color
+let lineThickness = 5; // Default line thickness
 
-// Load map into canvas
+// Load the map into the canvas
 function loadMap(mapName) {
     const mapImage = new Image();
-    mapImage.src = maps[mapName];
+    mapImage.src = `images/${mapName}-map.png`;
     mapImage.onload = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
-        const ratio = Math.min(canvas.width / mapImage.width, canvas.height / mapImage.height) * zoomLevel;
+        const ratio = Math.min(canvas.width / mapImage.width, canvas.height / mapImage.height);
         const width = mapImage.width * ratio;
         const height = mapImage.height * ratio;
         ctx.drawImage(mapImage, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height); // Center the image
     };
 }
 
-// Handle map selection
-document.querySelectorAll('.map-select').forEach(button => {
-    button.addEventListener('click', (event) => {
-        const mapName = event.target.getAttribute('data-map');
-        currentMap = mapName;
-        loadMap(currentMap);
+// Utility button event listener to select utilities
+document.querySelectorAll('.utility-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+        const utilityName = e.target.id.replace('-btn', '');
+        currentUtility = utilities[utilityName];
     });
+});
+
+// Color selection event listeners
+document.getElementById('color-red').addEventListener('click', () => {
+    selectedColor = '#FF0000';
+});
+document.getElementById('color-green').addEventListener('click', () => {
+    selectedColor = '#00FF00';
+});
+document.getElementById('color-blue').addEventListener('click', () => {
+    selectedColor = '#0000FF';
+});
+
+// Thickness selection event listeners
+document.getElementById('small-thickness').addEventListener('click', () => {
+    lineThickness = 5;
+});
+document.getElementById('medium-thickness').addEventListener('click', () => {
+    lineThickness = 10;
+});
+document.getElementById('big-thickness').addEventListener('click', () => {
+    lineThickness = 15;
 });
 
 // Draw on canvas
 canvas.addEventListener('mousedown', (e) => {
-    if (currentTool === 'pencil' && !eraseMode) {
-        drawing = true;
-        draw(e);
+    if (currentUtility) {
+        drawUtilityOnCanvas(e.offsetX, e.offsetY);
     }
 });
 
-canvas.addEventListener('mousemove', (e) => {
-    if (drawing && currentTool === 'pencil' && !eraseMode) {
-        draw(e);
+// Function to draw the selected utility
+function drawUtilityOnCanvas(x, y) {
+    if (currentUtility) {
+        currentUtility.x = x - currentUtility.width / 2;
+        currentUtility.y = y - currentUtility.height / 2;
+
+        // If it's a smoke, draw a radius
+        if (currentUtility === utilities.smoke) {
+            drawSmoke(x, y);
+        } else if (currentUtility === utilities.molotov) {
+            drawMolotov(x, y);
+        } else {
+            drawIcon(currentUtility.src, currentUtility.x, currentUtility.y, currentUtility.width, currentUtility.height);
+        }
     }
-});
+}
 
-canvas.addEventListener('mouseup', () => {
-    drawing = false;
-});
-
-// Drawing function with thickness
-function draw(e) {
-    if (!drawing) return;
-
-    const x = e.offsetX;
-    const y = e.offsetY;
-
+// Function to draw the smoke effect (slightly yellow)
+function drawSmoke(x, y) {
+    const radius = currentUtility.radius;
     ctx.beginPath();
-    ctx.arc(x, y, thickness, 0, Math.PI * 2);
-    ctx.fillStyle = "#FFFFFF"; // Default white color for drawing
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 0, 0.3)'; // Slightly yellow smoke
     ctx.fill();
+}
+
+// Function to draw the Molotov effect (slightly orange)
+function drawMolotov(x, y) {
+    const radius = 50;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 140, 0, 0.4)'; // Slightly orange for Molotov
+    ctx.fill();
+}
+
+// Function to draw the utility icon (frag, flash)
+function drawIcon(src, x, y, width, height) {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+        ctx.drawImage(img, x, y, width, height);
+    };
 }
 
 // Handle clear button
 document.getElementById('clear-btn').addEventListener('click', () => {
     loadMap(currentMap); // Reload map to clear everything except map
-});
-
-// Handle eraser tool
-document.getElementById('eraser-btn').addEventListener('click', () => {
-    eraseMode = !eraseMode;
-    currentTool = eraseMode ? 'eraser' : 'pencil';
-    document.getElementById('eraser-btn').style.backgroundColor = eraseMode ? '#9a3c9f' : '#6c2b8e';
-});
-
-// Utility buttons (Flash, Smoke, Molotov, Frag)
-document.querySelectorAll('.utility-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        selectedUtility = e.target.getAttribute('data-utility');
-    });
-});
-
-// Draw utility (Smoke, Flash, Frag, Molotov)
-canvas.addEventListener('click', (e) => {
-    if (selectedUtility) {
-        const x = e.offsetX;
-        const y = e.offsetY;
-
-        if (selectedUtility === 'flash') {
-            const flashIcon = new Image();
-            flashIcon.src = 'images/flash.png';
-            flashIcon.onload = () => {
-                ctx.drawImage(flashIcon, x - 15, y - 15, 30, 30); // Adjust size as needed
-            };
-        } else if (selectedUtility === 'smoke') {
-            const smokeIcon = new Image();
-            smokeIcon.src = 'images/smoke.png';
-            smokeIcon.onload = () => {
-                ctx.drawImage(smokeIcon, x - 15, y - 15, 30, 30);
-            };
-        } else if (selectedUtility === 'molotov') {
-            const molotovIcon = new Image();
-            molotovIcon.src = 'images/molotov.png';
-            molotovIcon.onload = () => {
-                ctx.drawImage(molotovIcon, x - 15, y - 15, 30, 30);
-            };
-        } else if (selectedUtility === 'frag') {
-            const fragIcon = new Image();
-            fragIcon.src = 'images/frag.png';
-            fragIcon.onload = () => {
-                ctx.drawImage(fragIcon, x - 15, y - 15, 30, 30);
-            };
-        }
-    }
-});
-
-// Mousewheel zoom functionality
-canvas.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    if (e.deltaY < 0) {
-        zoomLevel += 0.1;
-    } else {
-        zoomLevel = Math.max(0.5, zoomLevel - 0.1);
-    }
-    loadMap(currentMap);
-});
-
-// Handle drawing thickness change
-document.querySelectorAll('.thickness-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        thickness = parseInt(e.target.getAttribute('data-thickness'));
-    });
-});
-
-// Color selection for drawing
-document.querySelectorAll('.color-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        ctx.fillStyle = e.target.getAttribute('data-color');
-    });
 });
 
 // Initial map load
