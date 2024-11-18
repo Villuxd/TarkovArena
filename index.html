@@ -3,37 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="cache-control" content="no-cache">
-    <meta http-equiv="expires" content="0">
-    <meta http-equiv="pragma" content="no-cache">
-    <title>Interactive Map</title>
+    <title>Interactive Map Utility Tool</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="container">
+    <div id="controls">
         <div id="map-buttons">
-            <button class="map-select" data-map="fort">Fort</button>
-            <button class="map-select" data-map="skybridge">Skybridge</button>
-            <button class="map-select" data-map="bowl">Bowl</button>
-            <button class="map-select" data-map="bay5">Bay5</button>
+            <button id="fort">Fort</button>
+            <button id="skybridge">Skybridge</button>
+            <button id="bowl">Bowl</button>
+            <button id="bay5">Bay5</button>
         </div>
-        <div id="left-panel">
-            <img class="utility-btn" src="images/flash.png" data-utility="flash" draggable="false" alt="Flash">
-            <img class="utility-btn" src="images/frag.png" data-utility="frag" draggable="false" alt="Frag">
-            <img class="utility-btn" src="images/molotov.png" data-utility="molotov" draggable="false" alt="Molotov">
-            <img class="utility-btn" src="images/smoke.png" data-utility="smoke" draggable="false" alt="Smoke">
-        </div>
-        <div id="canvas-container">
-            <canvas id="map-canvas"></canvas>
-            <div id="bottom-panel">
-                <input type="color" id="color-picker">
-                <button id="small-thickness">Small</button>
-                <button id="medium-thickness">Medium</button>
-                <button id="large-thickness">Big</button>
-                <button id="clear-btn">Clear Everything</button>
-            </div>
+        <div id="utility-tools">
+            <img src="images/flash.png" alt="Flash" id="flash" draggable="false">
+            <img src="images/frag.png" alt="Frag" id="frag" draggable="false">
+            <img src="images/molotov.png" alt="Molotov" id="molotov" draggable="false">
+            <img src="images/smoke.png" alt="Smoke" id="smoke" draggable="false">
         </div>
     </div>
+
+    <div id="canvas-container">
+        <canvas id="mapCanvas"></canvas>
+        <div id="bottom-tools">
+            <button id="colorPicker">Pick Color</button>
+            <button id="pencilTool">Pencil</button>
+            <button id="handTool">Hand</button>
+            <button id="thicknessSmall">Small</button>
+            <button id="thicknessMedium">Medium</button>
+            <button id="thicknessBig">Big</button>
+            <button id="clearCanvas">Clear Everything</button>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
