@@ -6,10 +6,10 @@ let currentColor = '#ff0000';
 let selectedMap = 'fort';
 
 const maps = {
-    fort: 'fort-map.jpg', // Replace with your actual map images
-    skybridge: 'skybridge-map.jpg',
-    bowl: 'bowl-map.jpg',
-    bay5: 'bay5-map.jpg'
+    fort: 'fort-map.png', // Replace with your actual map images
+    skybridge: 'skybridge-map.png',
+    bowl: 'bowl-map.png',
+    bay5: 'bay5-map.png'
 };
 
 document.getElementById('map-selector').addEventListener('change', function() {
