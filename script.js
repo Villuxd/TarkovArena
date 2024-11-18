@@ -2,117 +2,86 @@ const canvas = document.getElementById('map-canvas');
 const ctx = canvas.getContext('2d');
 
 // Utility definitions
-const utilities = {
-    flash: { src: 'images/flash.png', x: 0, y: 0, width: 50, height: 50 },
-    smoke: { src: 'images/smoke.png', x: 0, y: 0, width: 50, height: 50, radius: 50 },
-    molotov: { src: 'images/molotov.png', x: 0, y: 0, width: 50, height: 50 },
-    frag: { src: 'images/frag.png', x: 0, y: 0, width: 50, height: 50 }
-};
-
-let currentUtility = null;
-let currentMap = 'fort'; // Default map
+const utilities = [];
+let currentUtilityType = null;
+let currentMap = 'fort';
 let drawing = false;
-let currentTool = 'pencil'; // Default tool
-let selectedColor = '#FFFFFF'; // Default color
-let lineThickness = 5; // Default line thickness
+let selectedColor = '#FFFFFF';
+let lineThickness = 5;
 
 // Load the map into the canvas
 function loadMap(mapName) {
     const mapImage = new Image();
     mapImage.src = `images/${mapName}-map.png`;
     mapImage.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
-        const ratio = Math.min(canvas.width / mapImage.width, canvas.height / mapImage.height);
-        const width = mapImage.width * ratio;
-        const height = mapImage.height * ratio;
-        ctx.drawImage(mapImage, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height); // Center the image
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
     };
 }
 
-// Utility button event listener to select utilities
+// Draw all utilities
+function redrawUtilities() {
+    utilities.forEach(utility => {
+        const img = new Image();
+        img.src = utility.src;
+        img.onload = () => {
+            ctx.drawImage(img, utility.x, utility.y, utility.width, utility.height);
+        };
+    });
+}
+
+// Add utility to canvas
+function addUtility(type, x, y) {
+    let utility = { type, src: `images/${type}.png`, x: x - 25, y: y - 25, width: 50, height: 50 };
+    utilities.push(utility);
+    redrawUtilities();
+}
+
+// Drawing on canvas
+canvas.addEventListener('mousedown', () => (drawing = true));
+canvas.addEventListener('mouseup', () => (drawing = false));
+canvas.addEventListener('mousemove', (e) => {
+    if (!drawing) return;
+    ctx.beginPath();
+    ctx.arc(e.offsetX, e.offsetY, lineThickness, 0, Math.PI * 2);
+    ctx.fillStyle = selectedColor;
+    ctx.fill();
+});
+
+// Handle utility button clicks
 document.querySelectorAll('.utility-btn').forEach(button => {
     button.addEventListener('click', (e) => {
-        const utilityName = e.target.id.replace('-btn', '');
-        currentUtility = utilities[utilityName];
+        currentUtilityType = e.target.id.replace('-btn', '');
     });
 });
 
-// Color selection event listeners
-document.getElementById('color-red').addEventListener('click', () => {
-    selectedColor = '#FF0000';
-});
-document.getElementById('color-green').addEventListener('click', () => {
-    selectedColor = '#00FF00';
-});
-document.getElementById('color-blue').addEventListener('click', () => {
-    selectedColor = '#0000FF';
+// Add utility on canvas click
+canvas.addEventListener('click', (e) => {
+    if (currentUtilityType) addUtility(currentUtilityType, e.offsetX, e.offsetY);
 });
 
-// Thickness selection event listeners
-document.getElementById('small-thickness').addEventListener('click', () => {
-    lineThickness = 5;
-});
-document.getElementById('medium-thickness').addEventListener('click', () => {
-    lineThickness = 10;
-});
-document.getElementById('big-thickness').addEventListener('click', () => {
-    lineThickness = 15;
-});
+// Color selection
+document.getElementById('color-red').addEventListener('click', () => (selectedColor = '#FF0000'));
+document.getElementById('color-green').addEventListener('click', () => (selectedColor = '#00FF00'));
+document.getElementById('color-blue').addEventListener('click', () => (selectedColor = '#0000FF'));
 
-// Draw on canvas
-canvas.addEventListener('mousedown', (e) => {
-    if (currentUtility) {
-        drawUtilityOnCanvas(e.offsetX, e.offsetY);
-    }
-});
+// Thickness selection
+document.getElementById('small-thickness').addEventListener('click', () => (lineThickness = 5));
+document.getElementById('medium-thickness').addEventListener('click', () => (lineThickness = 10));
+document.getElementById('big-thickness').addEventListener('click', () => (lineThickness = 15));
 
-// Function to draw the selected utility
-function drawUtilityOnCanvas(x, y) {
-    if (currentUtility) {
-        currentUtility.x = x - currentUtility.width / 2;
-        currentUtility.y = y - currentUtility.height / 2;
-
-        // If it's a smoke, draw a radius
-        if (currentUtility === utilities.smoke) {
-            drawSmoke(x, y);
-        } else if (currentUtility === utilities.molotov) {
-            drawMolotov(x, y);
-        } else {
-            drawIcon(currentUtility.src, currentUtility.x, currentUtility.y, currentUtility.width, currentUtility.height);
-        }
-    }
-}
-
-// Function to draw the smoke effect (slightly yellow)
-function drawSmoke(x, y) {
-    const radius = currentUtility.radius;
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 255, 0, 0.3)'; // Slightly yellow smoke
-    ctx.fill();
-}
-
-// Function to draw the Molotov effect (slightly orange)
-function drawMolotov(x, y) {
-    const radius = 50;
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 140, 0, 0.4)'; // Slightly orange for Molotov
-    ctx.fill();
-}
-
-// Function to draw the utility icon (frag, flash)
-function drawIcon(src, x, y, width, height) {
-    const img = new Image();
-    img.src = src;
-    img.onload = () => {
-        ctx.drawImage(img, x, y, width, height);
-    };
-}
-
-// Handle clear button
+// Clear canvas
 document.getElementById('clear-btn').addEventListener('click', () => {
-    loadMap(currentMap); // Reload map to clear everything except map
+    utilities.length = 0;
+    loadMap(currentMap);
+});
+
+// Switch map
+document.querySelectorAll('.map-select').forEach(button => {
+    button.addEventListener('click', (e) => {
+        currentMap = e.target.dataset.map;
+        loadMap(currentMap);
+    });
 });
 
 // Initial map load
