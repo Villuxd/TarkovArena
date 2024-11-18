@@ -10,15 +10,18 @@ body {
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    height: 100vh;
+    justify-content: space-between;
 }
 
 #utility-container {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    justify-content: space-around;
     position: absolute;
-    top: 50px;
+    top: 20px;
     left: 20px;
+    width: 100%;
+    z-index: 2;
 }
 
 .utility {
@@ -28,10 +31,10 @@ body {
 
 #map-container {
     position: relative;
-    margin: auto;
     width: 800px;
     height: 600px;
     border: 2px solid #555;
+    overflow: hidden;
 }
 
 #map-canvas {
@@ -44,7 +47,8 @@ body {
     display: flex;
     justify-content: center;
     gap: 10px;
-    margin: 10px 0;
+    margin-top: 20px;
+    z-index: 1;
 }
 
 .map-button {
@@ -54,6 +58,11 @@ body {
     color: white;
     border: none;
     cursor: pointer;
+    margin: 5px;
+}
+
+.map-button:hover {
+    background-color: darkgreen;
 }
 
 #bottom-tools {
@@ -62,6 +71,7 @@ body {
     align-items: center;
     gap: 10px;
     margin-top: 10px;
+    z-index: 1;
 }
 
 .tool-button {
@@ -82,4 +92,12 @@ body {
     height: 30px;
     width: 40px;
     cursor: pointer;
+}
+
+button {
+    transition: background-color 0.2s ease;
+}
+
+button:hover {
+    background-color: #333;
 }
