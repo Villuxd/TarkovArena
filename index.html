@@ -3,24 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarkov Arena</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Tarkov Arena Planner</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="toolbar">
-        <button id="clear-btn">Clear Everything</button>
-        <button id="eraser-btn">Eraser</button>
-        <button class="map-select" data-map="fort">Fort</button>
-        <button class="map-select" data-map="skybridge">Skybridge</button>
-        <button class="map-select" data-map="bowl">Bowl</button>
-        <button class="map-select" data-map="bay5">Bay5</button>
-        <button class="utility-btn" data-utility="flash">Flashbang</button>
-        <button class="utility-btn" data-utility="smoke">Smoke</button>
-        <button class="utility-btn" data-utility="molotov">Molotov</button>
-        <button class="utility-btn" data-utility="frag">Frag</button>
-    </div>
-    <canvas id="map-canvas" width="800" height="600"></canvas>
+    <h1>Tarkov Arena Planner</h1>
 
-    <script src="script.js"></script>
+    <!-- Map selection buttons -->
+    <div class="map-selection">
+        <button onclick="loadMap('bowl')">Bowl</button>
+        <button onclick="loadMap('bay5')">Bay5</button>
+        <button onclick="loadMap('fort')">Fort</button>
+        <button onclick="loadMap('skybridge')">Skybridge</button>
+    </div>
+
+    <!-- Canvas for the map -->
+    <div id="mapCanvas"></div>
+
+    <!-- Draggable items -->
+    <div class="item-container">
+        <div id="smoke" class="draggable-item" draggable="true" ondragstart="drag(event)">Smoke</div>
+        <div id="grenade" class="draggable-item" draggable="true" ondragstart="drag(event)">Grenade</div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
