@@ -1,40 +1,50 @@
 const canvas = document.getElementById('map-canvas');
 const ctx = canvas.getContext('2d');
 
-// Utility definitions
-const utilities = [];
-let currentUtilityType = null;
 let currentMap = 'fort';
+let drawings = [];
+let utilities = [];
 let drawing = false;
 let selectedColor = '#FFFFFF';
 let lineThickness = 5;
+let zoomLevel = 1;
+let currentUtilityType = null;
 
-// Load the map into the canvas
+// Load map into the canvas
 function loadMap(mapName) {
     const mapImage = new Image();
     mapImage.src = `images/${mapName}-map.png`;
     mapImage.onload = () => {
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transforms
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.scale(zoomLevel, zoomLevel);
         ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+        redrawUtilities();
+        redrawDrawings();
     };
 }
 
-// Draw all utilities
-function redrawUtilities() {
-    utilities.forEach(utility => {
-        const img = new Image();
-        img.src = utility.src;
-        img.onload = () => {
-            ctx.drawImage(img, utility.x, utility.y, utility.width, utility.height);
-        };
+// Redraw drawings
+function redrawDrawings() {
+    drawings.forEach(drawing => {
+        ctx.beginPath();
+        ctx.arc(drawing.x, drawing.y, drawing.thickness, 0, Math.PI * 2);
+        ctx.fillStyle = drawing.color;
+        ctx.fill();
     });
 }
 
-// Add utility to canvas
-function addUtility(type, x, y) {
-    let utility = { type, src: `images/${type}.png`, x: x - 25, y: y - 25, width: 50, height: 50 };
-    utilities.push(utility);
-    redrawUtilities();
+// Redraw utilities
+function redrawUtilities() {
+    utilities.forEach(util => {
+        const img = new Image();
+        img.src = util.src;
+        img.onload = () => {
+            ctx.drawImage(img, util.x, util.y, util.width, util.height);
+        };
+    });
 }
 
 // Drawing on canvas
@@ -42,13 +52,11 @@ canvas.addEventListener('mousedown', () => (drawing = true));
 canvas.addEventListener('mouseup', () => (drawing = false));
 canvas.addEventListener('mousemove', (e) => {
     if (!drawing) return;
-    ctx.beginPath();
-    ctx.arc(e.offsetX, e.offsetY, lineThickness, 0, Math.PI * 2);
-    ctx.fillStyle = selectedColor;
-    ctx.fill();
+    drawings.push({ x: e.offsetX / zoomLevel, y: e.offsetY / zoomLevel, color: selectedColor, thickness: lineThickness });
+    redrawDrawings();
 });
 
-// Handle utility button clicks
+// Utility button clicks
 document.querySelectorAll('.utility-btn').forEach(button => {
     button.addEventListener('click', (e) => {
         currentUtilityType = e.target.id.replace('-btn', '');
@@ -57,26 +65,36 @@ document.querySelectorAll('.utility-btn').forEach(button => {
 
 // Add utility on canvas click
 canvas.addEventListener('click', (e) => {
-    if (currentUtilityType) addUtility(currentUtilityType, e.offsetX, e.offsetY);
+    if (!currentUtilityType) return;
+    utilities.push({ type: currentUtilityType, src: `images/${currentUtilityType}.png`, x: e.offsetX / zoomLevel - 25, y: e.offsetY / zoomLevel - 25, width: 50, height: 50 });
+    redrawUtilities();
 });
 
-// Color selection
+// Zoom functionality
+canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    zoomLevel += e.deltaY > 0 ? -0.1 : 0.1;
+    zoomLevel = Math.min(Math.max(zoomLevel, 0.5), 3); // Clamp between 0.5 and 3
+    loadMap(currentMap);
+});
+
+// Color and thickness buttons
 document.getElementById('color-red').addEventListener('click', () => (selectedColor = '#FF0000'));
 document.getElementById('color-green').addEventListener('click', () => (selectedColor = '#00FF00'));
 document.getElementById('color-blue').addEventListener('click', () => (selectedColor = '#0000FF'));
 
-// Thickness selection
 document.getElementById('small-thickness').addEventListener('click', () => (lineThickness = 5));
 document.getElementById('medium-thickness').addEventListener('click', () => (lineThickness = 10));
 document.getElementById('big-thickness').addEventListener('click', () => (lineThickness = 15));
 
-// Clear canvas
+// Clear button
 document.getElementById('clear-btn').addEventListener('click', () => {
-    utilities.length = 0;
+    drawings = [];
+    utilities = [];
     loadMap(currentMap);
 });
 
-// Switch map
+// Map selection
 document.querySelectorAll('.map-select').forEach(button => {
     button.addEventListener('click', (e) => {
         currentMap = e.target.dataset.map;
@@ -84,5 +102,5 @@ document.querySelectorAll('.map-select').forEach(button => {
     });
 });
 
-// Initial map load
+// Load the initial map
 loadMap(currentMap);

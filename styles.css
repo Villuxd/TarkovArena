@@ -2,23 +2,23 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    height: 100vh;
     background-color: #1a1a1a;
+    color: white;
 }
 
 .toolbar {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-right: 10px;
+    margin-bottom: 10px;
 }
 
-.map-tabs, .controls {
+.map-tabs {
     display: flex;
-    flex-direction: row;
-    margin: 10px;
+    justify-content: center;
+    margin-bottom: 10px;
 }
 
 .map-select {
@@ -27,6 +27,7 @@ body {
     padding: 10px;
     margin: 5px;
     cursor: pointer;
+    border: none;
 }
 
 .map-select:hover {
@@ -48,30 +49,20 @@ body {
 
 .controls {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    justify-content: space-around;
     width: 100%;
+    margin-top: 10px;
 }
 
-.color-controls, .thickness-controls {
-    display: flex;
-    align-items: center;
-}
-
-.color-btn, .thickness-btn {
+.color-btn, .thickness-btn, #clear-btn {
     padding: 10px;
     margin: 5px;
     border-radius: 5px;
     cursor: pointer;
 }
 
-#clear-btn {
-    padding: 10px;
-    margin-left: 10px;
-    cursor: pointer;
-}
-
 #map-canvas {
     border: 1px solid black;
     background-color: #2b2b2b; /* Slightly dark gray background */
+    cursor: crosshair;
 }
