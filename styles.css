@@ -13,18 +13,34 @@ body {
     align-items: center;
     height: 100vh;
     color: white;
+    flex-direction: column;
 }
 
+/* Toolbar styling */
 .toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
     position: absolute;
     top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 5;
+    left: 20px;
+}
+
+.map-selection {
+    display: flex;
+    gap: 10px;
+}
+
+.utility-selection {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-bottom: 20px;
+}
+
+.drawing-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 button {
@@ -41,17 +57,30 @@ button:hover {
     background-color: #9a3c9f; /* Lighter purple on hover */
 }
 
+/* Canvas Styling */
 #map-canvas {
-    background-color: #333; /* Dark gray/black background for canvas */
+    background-color: #333; /* Dark gray background for canvas */
     border: 2px solid #4a1a67; /* Darker purple border */
     cursor: crosshair;
 }
 
-.tool-options, .color-options {
-    display: flex;
-    gap: 10px;
+/* Utility & Drawing buttons - Align the utility buttons to the left */
+.utility-selection {
+    margin-left: 20px;
 }
 
-.tool-options button, .color-options button {
-    width: 50px;
+.drawing-options {
+    margin-top: 20px;
+}
+
+.color-btn, .thickness-btn {
+    padding: 10px 20px;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+    .toolbar {
+        flex-direction: column;
+        align-items: center;
+    }
 }
