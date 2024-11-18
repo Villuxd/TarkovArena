@@ -13,10 +13,8 @@ body {
     align-items: center;
     height: 100vh;
     color: white;
-    overflow: hidden;
 }
 
-/* Toolbar styling */
 .toolbar {
     position: absolute;
     top: 20px;
@@ -28,7 +26,7 @@ body {
 }
 
 button {
-    background-color: #6c2b8e;
+    background-color: #6c2b8e; /* Purple button background */
     color: white;
     padding: 10px 15px;
     border: none;
@@ -38,14 +36,11 @@ button {
 }
 
 button:hover {
-    background-color: #9a3c9f;
+    background-color: #9a3c9f; /* Lighter purple on hover */
 }
 
-/* Canvas for the map */
 #map-canvas {
-    background-color: #e6e6e6; /* Light gray */
-    border: 2px solid #4a1a67;
+    background-color: #e6e6e6; /* Light gray background for canvas */
+    border: 2px solid #4a1a67; /* Darker purple border */
     cursor: crosshair;
-    position: relative;
-    overflow: hidden;
 }
