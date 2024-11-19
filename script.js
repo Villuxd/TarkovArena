@@ -10,17 +10,31 @@ let isDrawing = false;
 let drawColor = "#000000";
 let drawThickness = 2; // Default thickness
 let activeTool = "pencil"; // Default tool
-let panOffset = { x: 0, y: 0 };
-let startPos = null;
+let mapImage = new Image();
+let panOffset = { x: 0, y: 0 }; // For panning
+let zoomScale = 1; // Default zoom level
+let startPos = null; // Start position for panning
 
 // Function to load and draw the map image
 function loadMapImage(mapPath) {
-    const mapImage = new Image();
+    mapImage = new Image();
     mapImage.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before drawing new map
-        ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height); // Draw the image scaled to the canvas
+        // Ensure the map is drawn at the correct position with the correct zoom
+        drawMap();
     };
     mapImage.src = mapPath;
+}
+
+// Function to draw the map with pan and zoom applied
+function drawMap() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before drawing new map
+
+    const mapWidth = mapImage.width * zoomScale;
+    const mapHeight = mapImage.height * zoomScale;
+
+    // Apply pan offset and zoom scale when drawing the image
+    ctx.setTransform(zoomScale, 0, 0, zoomScale, panOffset.x, panOffset.y);
+    ctx.drawImage(mapImage, 0, 0, mapWidth, mapHeight); // Draw the map image with zoom and pan
 }
 
 // Initial map load
@@ -82,9 +96,26 @@ mapButtons.forEach(button => {
     });
 });
 
-// Hand Tool
-document.getElementById("hand-tool").addEventListener("click", () => {
-    activeTool = "hand";
+// Hand Tool (for panning)
+canvas.addEventListener("mousedown", (e) => {
+    if (activeTool !== "hand") return;
+
+    startPos = { x: e.clientX - panOffset.x, y: e.clientY - panOffset.y };
+    canvas.style.cursor = "grabbing";
+});
+
+canvas.addEventListener("mousemove", (e) => {
+    if (startPos) {
+        const dx = e.clientX - startPos.x;
+        const dy = e.clientY - startPos.y;
+
+        panOffset = { x: dx, y: dy };
+        drawMap(); // Redraw the map after panning
+    }
+});
+
+canvas.addEventListener("mouseup", () => {
+    startPos = null;
     canvas.style.cursor = "grab";
 });
 
@@ -115,14 +146,23 @@ document.getElementById("color-picker").addEventListener("input", (e) => {
 // Clear Button
 document.getElementById("clear-button").addEventListener("click", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    loadMapImage(currentMap); // Reload the map after clearing
 });
 
 // Zoom
-let zoomScale = 1;
 canvas.addEventListener("wheel", (e) => {
     e.preventDefault();
+
+    // Calculate zoom scale based on the direction of scroll
     zoomScale += e.deltaY * -0.01;
     zoomScale = Math.min(Math.max(zoomScale, 0.5), 2); // Limit zoom
-    ctx.setTransform(zoomScale, 0, 0, zoomScale, 0, 0);
-    loadMapImage(currentMap); // Reload map after zoom
+
+    // Zoom towards the mouse position
+    const mouseX = e.offsetX;
+    const mouseY = e.offsetY;
+
+    panOffset.x -= (mouseX - panOffset.x) * (1 - zoomScale);
+    panOffset.y -= (mouseY - panOffset.y) * (1 - zoomScale);
+
+    drawMap(); // Redraw map after zoom
 });
