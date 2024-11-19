@@ -1,6 +1,7 @@
+/* CSS (styles.css) */
 body {
     margin: 0;
-    background-color: #0A1D2D; /* Dark Blue background */
+    background-color: #0e1a2a; /* Dark blue background */
     color: #fff;
     font-family: 'Rubik', sans-serif;
 }
@@ -22,7 +23,7 @@ body {
 }
 
 .utility {
-    width: 30px; /* Reduced size for icons */
+    width: 30px; /* Reduced size of grenade icons */
     cursor: pointer;
 }
 
@@ -32,13 +33,13 @@ body {
     width: 800px;
     height: 600px;
     border: 2px solid #555;
+    overflow: hidden;
 }
 
 #map-canvas {
     width: 100%;
     height: 100%;
     background-color: black;
-    cursor: grab;
 }
 
 #tools-container {
@@ -83,9 +84,4 @@ body {
     height: 30px;
     width: 40px;
     cursor: pointer;
-}
-
-.thickness-button img {
-    width: 30px;
-    height: 30px;
 }

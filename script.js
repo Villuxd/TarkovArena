@@ -1,169 +1,141 @@
-const mapCanvas = document.getElementById('map-canvas');
-const ctx = mapCanvas.getContext('2d');
+// JavaScript (script.js)
+const canvas = document.getElementById("map-canvas");
+const ctx = canvas.getContext("2d");
+const mapImages = {
+    fort: "images/fort-map.png",
+    skybridge: "images/skybridge-map.png",
+    bowl: "images/bowl-map.png",
+    bay5: "images/bay5-map.png"
+};
 
-let mapImage = new Image();
-let mapX = 0, mapY = 0;
-let zoom = 1;
-let zoomFactor = 0.1;
+let currentMap = "fort";
+let zoomLevel = 1;
+let offsetX = 0;
+let offsetY = 0;
 let isDrawing = false;
-let currentTool = null;
-let currentColor = '#ff0000';
-let currentThickness = 5;
+let tool = "hand";
+let currentColor = "#FFFFFF";
+let thickness = 5;
+let utilities = [];
 
-let utilityIcons = [];
+const loadImage = (src) => {
+    const img = new Image();
+    img.src = src;
+    return img;
+};
 
-let smokeRadiusImage = new Image();
-let molotovRadiusImage = new Image();
+const mapImage = loadImage(mapImages[currentMap]);
+mapImage.onload = () => {
+    drawMap();
+};
 
-smokeRadiusImage.src = 'images/smoke-radius.png';
-molotovRadiusImage.src = 'images/molotov-radius.png';
+// Draw the map image
+function drawMap() {
+    const width = mapImage.width * zoomLevel;
+    const height = mapImage.height * zoomLevel;
 
-const width = 800;
-const height = 600;
-
-mapCanvas.width = width;
-mapCanvas.height = height;
-
-let isDragging = false;
-let lastX = 0, lastY = 0;
-
-let drawnShapes = [];
-let utilityPositions = [];
-
-function loadMap(mapName) {
-    mapImage.src = `images/${mapName}-map.png`; 
-    mapImage.onload = () => {
-        ctx.drawImage(mapImage, mapX, mapY, mapImage.width * zoom, mapImage.height * zoom);
-    };
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(mapImage, offsetX, offsetY, width, height);
+    drawUtilities();
 }
 
-document.getElementById('map-fort').addEventListener('click', () => loadMap('fort'));
-document.getElementById('map-skybridge').addEventListener('click', () => loadMap('skybridge'));
-document.getElementById('map-bowl').addEventListener('click', () => loadMap('bowl'));
-document.getElementById('map-bay5').addEventListener('click', () => loadMap('bay5'));
-
-document.getElementById('hand-tool').addEventListener('click', () => {
-    currentTool = 'hand';
-    mapCanvas.style.cursor = 'grab';
-});
-
-document.getElementById('pencil-tool').addEventListener('click', () => {
-    currentTool = 'pencil';
-    mapCanvas.style.cursor = 'crosshair';
-});
-
-document.getElementById('color-picker').addEventListener('input', (e) => {
-    currentColor = e.target.value;
-});
-
-document.getElementById('small-thickness').addEventListener('click', () => {
-    currentThickness = 5;
-});
-
-document.getElementById('medium-thickness').addEventListener('click', () => {
-    currentThickness = 10;
-});
-
-document.getElementById('big-thickness').addEventListener('click', () => {
-    currentThickness = 15;
-});
-
-document.getElementById('clear-button').addEventListener('click', () => {
-    drawnShapes = [];
-    utilityPositions = [];
-    drawEverything();
-});
-
-mapCanvas.addEventListener('mousedown', (e) => {
-    if (currentTool === 'hand') {
-        isDragging = true;
-        lastX = e.offsetX;
-        lastY = e.offsetY;
-    } else if (currentTool === 'pencil') {
-        isDrawing = true;
-        drawnShapes.push({
-            type: 'line',
-            color: currentColor,
-            thickness: currentThickness,
-            startX: e.offsetX,
-            startY: e.offsetY,
-            endX: e.offsetX,
-            endY: e.offsetY
-        });
-        drawEverything();
-    }
-});
-
-mapCanvas.addEventListener('mousemove', (e) => {
-    if (isDragging) {
-        const deltaX = e.offsetX - lastX;
-        const deltaY = e.offsetY - lastY;
-        mapX += deltaX;
-        mapY += deltaY;
-        lastX = e.offsetX;
-        lastY = e.offsetY;
-        drawEverything();
-    } else if (isDrawing) {
-        const shape = drawnShapes[drawnShapes.length - 1];
-        shape.endX = e.offsetX;
-        shape.endY = e.offsetY;
-        drawEverything();
-    }
-});
-
-mapCanvas.addEventListener('mouseup', () => {
-    isDragging = false;
-    isDrawing = false;
-});
-
-mapCanvas.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    const zoomDirection = e.deltaY < 0 ? 1 : -1;
-    zoom = Math.min(Math.max(zoom + zoomDirection * zoomFactor, 0.5), 3);
-    drawEverything();
-});
-
-function drawEverything() {
-    ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-    ctx.drawImage(mapImage, mapX, mapY, mapImage.width * zoom, mapImage.height * zoom);
-    for (const shape of drawnShapes) {
-        ctx.beginPath();
-        ctx.moveTo(shape.startX, shape.startY);
-        ctx.lineTo(shape.endX, shape.endY);
-        ctx.strokeStyle = shape.color;
-        ctx.lineWidth = shape.thickness;
-        ctx.stroke();
-    }
-    for (const icon of utilityPositions) {
-        ctx.drawImage(icon.image, icon.x, icon.y, icon.image.width * zoom, icon.image.height * zoom);
-    }
-}
-
-function addUtilityIcon(image, x, y) {
-    utilityPositions.push({
-        image: image,
-        x: x,
-        y: y
+// Draw all utilities on the map
+function drawUtilities() {
+    utilities.forEach((utility) => {
+        ctx.drawImage(utility.image, utility.x, utility.y, utility.size, utility.size);
     });
-    drawEverything();
 }
 
-document.getElementById('flash-icon').addEventListener('click', () => {
-    const flashIcon = new Image();
-    flashIcon.src = 'images/flash-icon.png';
-    flashIcon.onload = () => addUtilityIcon(flashIcon, 100, 100); // Example position
+// Add utility (e.g., grenade, pencil drawing, etc.)
+function addUtility(x, y, image, size) {
+    utilities.push({
+        x,
+        y,
+        image,
+        size
+    });
+}
+
+// Handle mouse events for map dragging and zooming
+canvas.addEventListener("mousedown", (e) => {
+    if (tool === "hand") {
+        isDrawing = false;
+        offsetX = e.clientX - canvas.offsetLeft;
+        offsetY = e.clientY - canvas.offsetTop;
+    }
 });
 
-document.getElementById('smoke-icon').addEventListener('click', () => {
-    addUtilityIcon(smokeRadiusImage, 200, 200); // Use the smoke radius image
+canvas.addEventListener("mousemove", (e) => {
+    if (tool === "hand" && isDrawing === false) {
+        const dx = e.clientX - canvas.offsetLeft - offsetX;
+        const dy = e.clientY - canvas.offsetTop - offsetY;
+        offsetX += dx;
+        offsetY += dy;
+        drawMap();
+    }
 });
 
-document.getElementById('molotov-icon').addEventListener('click', () => {
-    addUtilityIcon(molotovRadiusImage, 300, 300); // Use the molotov radius image
+canvas.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const zoomFactor = 0.1;
+    let zoomDelta = e.deltaY < 0 ? zoomFactor : -zoomFactor;
+    zoomLevel += zoomDelta;
+    zoomLevel = Math.max(0.5, Math.min(zoomLevel, 3)); // Restrict zoom level
+
+    drawMap();
 });
 
-document.getElementById('frag-icon').addEventListener('click', () => {
-    const fragIcon = new Image();
-    fragIcon.src = 'images/frag-icon.png';
-    fragIcon.onload = () => addUtilityIcon(fragIcon, 400, 400); // Example position
+// Zoom in/out with mouse cursor
+canvas.addEventListener("wheel", (e) => {
+    const mouseX = e.clientX - canvas.offsetLeft;
+    const mouseY = e.clientY - canvas.offsetTop;
+    const zoomFactor = 0.1;
+    let zoomDelta = e.deltaY < 0 ? zoomFactor : -zoomFactor;
+    zoomLevel += zoomDelta;
+    zoomLevel = Math.max(0.5, Math.min(zoomLevel, 3)); // Restrict zoom level
+
+    const scaleX = (mouseX - offsetX) * zoomDelta;
+    const scaleY = (mouseY - offsetY) * zoomDelta;
+
+    offsetX -= scaleX;
+    offsetY -= scaleY;
+
+    drawMap();
+});
+
+// Set utility image and handle placement on canvas
+function setUtility(toolType) {
+    let utilityImage;
+    switch (toolType) {
+        case "flash":
+            utilityImage = loadImage("images/flash-icon.png");
+            break;
+        case "smoke":
+            utilityImage = loadImage("images/smoke-radius.png"); // Smoke radius
+            break;
+        case "molotov":
+            utilityImage = loadImage("images/molotov-radius.png"); // Molotov radius
+            break;
+        default:
+            return;
+    }
+
+    return utilityImage;
+}
+
+// Handle placing the utilities on the map
+canvas.addEventListener("click", (e) => {
+    const x = e.clientX - canvas.offsetLeft;
+    const y = e.clientY - canvas.offsetTop;
+    if (tool === "flash" || tool === "smoke" || tool === "molotov") {
+        const size = 40; // Example size, can be adjusted based on zoom
+        const utilityImage = setUtility(tool);
+        addUtility(x - size / 2, y - size / 2, utilityImage, size);
+        drawMap();
+    }
+});
+
+// Set tool to pencil or hand
+document.getElementById("hand-tool").addEventListener("click", () => {
+    tool = "hand";
 });
