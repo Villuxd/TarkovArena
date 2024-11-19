@@ -157,12 +157,14 @@ canvas.addEventListener("wheel", (e) => {
     zoomScale += e.deltaY * -0.01;
     zoomScale = Math.min(Math.max(zoomScale, 0.5), 2); // Limit zoom
 
-    // Zoom towards the mouse position
+    // Calculate the mouse position relative to the canvas
     const mouseX = e.offsetX;
     const mouseY = e.offsetY;
 
+    // Adjust the panOffset to zoom towards the mouse position
     panOffset.x -= (mouseX - panOffset.x) * (1 - zoomScale);
     panOffset.y -= (mouseY - panOffset.y) * (1 - zoomScale);
 
-    drawMap(); // Redraw map after zoom
+    // Redraw the map after zoom
+    drawMap();
 });
