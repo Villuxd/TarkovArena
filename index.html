@@ -1,47 +1,35 @@
-<!-- HTML (index.html) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Map Utility Planner</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Map Utility Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="container">
-        <div id="utility-container">
-            <img id="flash-icon" class="utility" src="images/flash-icon.png" alt="Flash">
-            <img id="smoke-icon" class="utility" src="images/smoke-icon.png" alt="Smoke">
-            <img id="molotov-icon" class="utility" src="images/molotov-icon.png" alt="Molotov">
-            <img id="frag-icon" class="utility" src="images/frag-icon.png" alt="Frag">
-        </div>
-
-        <div id="map-container">
-            <canvas id="map-canvas"></canvas>
-        </div>
-
-        <div id="tools-container">
-            <button id="map-fort" class="map-button">Fort</button>
-            <button id="map-skybridge" class="map-button">Skybridge</button>
-            <button id="map-bowl" class="map-button">Bowl</button>
-            <button id="map-bay5" class="map-button">Bay5</button>
-        </div>
-
-        <div id="bottom-tools">
-            <button id="hand-tool" class="tool-button">
-                <img src="images/hand-icon.png" alt="Hand Tool">
-            </button>
-            <button id="pencil-tool" class="tool-button">
-                <img src="images/pencil-icon.png" alt="Pencil Tool">
-            </button>
-            <input type="color" id="color-picker">
-            <button id="small-thickness">Small</button>
-            <button id="medium-thickness">Medium</button>
-            <button id="big-thickness">Big</button>
-            <button id="clear-button">Clear Everything</button>
-        </div>
+    <div class="toolbar">
+        <button id="hand-tool">
+            <img src="images/hand-icon.png" alt="Hand Tool">
+        </button>
+        <button id="pencil-tool">
+            <img src="images/pencil-icon.png" alt="Pencil Tool">
+        </button>
+        <button id="smoke-icon">
+            <img src="images/smoke-icon.png" alt="Smoke">
+        </button>
+        <button id="molotov-icon">
+            <img src="images/molotov-icon.png" alt="Molotov">
+        </button>
+        <button id="flash-icon">
+            <img src="images/flash-icon.png" alt="Flash">
+        </button>
     </div>
+
+    <div class="canvas-container">
+        <canvas id="map-canvas"></canvas>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

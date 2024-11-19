@@ -1,141 +1,113 @@
-// JavaScript (script.js)
-const canvas = document.getElementById("map-canvas");
-const ctx = canvas.getContext("2d");
-const mapImages = {
-    fort: "images/fort-map.png",
-    skybridge: "images/skybridge-map.png",
-    bowl: "images/bowl-map.png",
-    bay5: "images/bay5-map.png"
-};
+// Get references to the canvas and context
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
 
-let currentMap = "fort";
+// Initial map image and settings
+let mapImage = new Image();
+mapImage.src = 'images/bay5-map.png'; // Default map (can be changed)
+let mapPosition = { x: 0, y: 0 };
 let zoomLevel = 1;
-let offsetX = 0;
-let offsetY = 0;
-let isDrawing = false;
-let tool = "hand";
-let currentColor = "#FFFFFF";
-let thickness = 5;
-let utilities = [];
 
-const loadImage = (src) => {
-    const img = new Image();
-    img.src = src;
-    return img;
-};
+// Variables to store the tool status
+let activeTool = 'hand';
+let activeUtility = null;
+let utilityMarkers = [];
 
-const mapImage = loadImage(mapImages[currentMap]);
-mapImage.onload = () => {
-    drawMap();
-};
+// Variables to track utility locations
+let smokeX = 300, smokeY = 300; // Example coordinates
+let molotovX = 500, molotovY = 500; // Example coordinates
 
-// Draw the map image
-function drawMap() {
-    const width = mapImage.width * zoomLevel;
-    const height = mapImage.height * zoomLevel;
+// Function to draw smoke radius (foggy effect)
+function drawSmokeRadius(x, y, scale) {
+    ctx.beginPath();
+    ctx.arc(x, y, 100 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(200, 200, 200, 0.4)";  // Light gray to simulate fog/smoke
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(200, 200, 200, 0.6)";  // Light gray border
+    ctx.stroke();
+}
 
+// Function to draw Molotov radius (fire effect)
+function drawMolotovRadius(x, y, scale) {
+    ctx.beginPath();
+    ctx.arc(x, y, 100 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 69, 0, 0.5)";  // Fire color (orange)
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255, 69, 0, 0.8)";  // Darker border for fire
+    ctx.stroke();
+}
+
+// Draw the map image and reset canvas zoom on zoom and pan
+function redrawCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(mapImage, offsetX, offsetY, width, height);
-    drawUtilities();
+    ctx.drawImage(mapImage, mapPosition.x, mapPosition.y, mapImage.width * zoomLevel, mapImage.height * zoomLevel);
+    utilityMarkers.forEach(marker => marker.draw());
 }
 
-// Draw all utilities on the map
-function drawUtilities() {
-    utilities.forEach((utility) => {
-        ctx.drawImage(utility.image, utility.x, utility.y, utility.size, utility.size);
-    });
-}
+// Handle mouse zoom event (zoom into cursor)
+canvas.addEventListener('wheel', (event) => {
+    event.preventDefault();
+    const zoomFactor = event.deltaY < 0 ? 1.1 : 0.9;
+    zoomLevel *= zoomFactor;
 
-// Add utility (e.g., grenade, pencil drawing, etc.)
-function addUtility(x, y, image, size) {
-    utilities.push({
-        x,
-        y,
-        image,
-        size
-    });
-}
+    // Zoom limit conditions
+    zoomLevel = Math.max(0.5, Math.min(zoomLevel, 3));
 
-// Handle mouse events for map dragging and zooming
-canvas.addEventListener("mousedown", (e) => {
-    if (tool === "hand") {
-        isDrawing = false;
-        offsetX = e.clientX - canvas.offsetLeft;
-        offsetY = e.clientY - canvas.offsetTop;
+    // Zoom into cursor position
+    const mouseX = event.offsetX;
+    const mouseY = event.offsetY;
+
+    mapPosition.x -= (mouseX - mapPosition.x) * (zoomFactor - 1);
+    mapPosition.y -= (mouseY - mapPosition.y) * (zoomFactor - 1);
+
+    redrawCanvas();
+});
+
+// Handle dragging the map (hand tool)
+let isDragging = false;
+let lastX = 0;
+let lastY = 0;
+
+canvas.addEventListener('mousedown', (event) => {
+    if (activeTool === 'hand') {
+        isDragging = true;
+        lastX = event.offsetX;
+        lastY = event.offsetY;
     }
 });
 
-canvas.addEventListener("mousemove", (e) => {
-    if (tool === "hand" && isDrawing === false) {
-        const dx = e.clientX - canvas.offsetLeft - offsetX;
-        const dy = e.clientY - canvas.offsetTop - offsetY;
-        offsetX += dx;
-        offsetY += dy;
-        drawMap();
+canvas.addEventListener('mousemove', (event) => {
+    if (isDragging) {
+        const dx = event.offsetX - lastX;
+        const dy = event.offsetY - lastY;
+        mapPosition.x += dx;
+        mapPosition.y += dy;
+        lastX = event.offsetX;
+        lastY = event.offsetY;
+        redrawCanvas();
     }
 });
 
-canvas.addEventListener("wheel", (e) => {
-    e.preventDefault();
-    const zoomFactor = 0.1;
-    let zoomDelta = e.deltaY < 0 ? zoomFactor : -zoomFactor;
-    zoomLevel += zoomDelta;
-    zoomLevel = Math.max(0.5, Math.min(zoomLevel, 3)); // Restrict zoom level
-
-    drawMap();
+canvas.addEventListener('mouseup', () => {
+    isDragging = false;
 });
 
-// Zoom in/out with mouse cursor
-canvas.addEventListener("wheel", (e) => {
-    const mouseX = e.clientX - canvas.offsetLeft;
-    const mouseY = e.clientY - canvas.offsetTop;
-    const zoomFactor = 0.1;
-    let zoomDelta = e.deltaY < 0 ? zoomFactor : -zoomFactor;
-    zoomLevel += zoomDelta;
-    zoomLevel = Math.max(0.5, Math.min(zoomLevel, 3)); // Restrict zoom level
-
-    const scaleX = (mouseX - offsetX) * zoomDelta;
-    const scaleY = (mouseY - offsetY) * zoomDelta;
-
-    offsetX -= scaleX;
-    offsetY -= scaleY;
-
-    drawMap();
+// Handle adding utility effects on the map (smoke, molotov)
+document.getElementById('smoke-icon').addEventListener('click', () => {
+    activeUtility = 'smoke';
+    drawSmokeRadius(smokeX, smokeY, zoomLevel);
 });
 
-// Set utility image and handle placement on canvas
-function setUtility(toolType) {
-    let utilityImage;
-    switch (toolType) {
-        case "flash":
-            utilityImage = loadImage("images/flash-icon.png");
-            break;
-        case "smoke":
-            utilityImage = loadImage("images/smoke-radius.png"); // Smoke radius
-            break;
-        case "molotov":
-            utilityImage = loadImage("images/molotov-radius.png"); // Molotov radius
-            break;
-        default:
-            return;
-    }
-
-    return utilityImage;
-}
-
-// Handle placing the utilities on the map
-canvas.addEventListener("click", (e) => {
-    const x = e.clientX - canvas.offsetLeft;
-    const y = e.clientY - canvas.offsetTop;
-    if (tool === "flash" || tool === "smoke" || tool === "molotov") {
-        const size = 40; // Example size, can be adjusted based on zoom
-        const utilityImage = setUtility(tool);
-        addUtility(x - size / 2, y - size / 2, utilityImage, size);
-        drawMap();
-    }
+document.getElementById('molotov-icon').addEventListener('click', () => {
+    activeUtility = 'molotov';
+    drawMolotovRadius(molotovX, molotovY, zoomLevel);
 });
 
-// Set tool to pencil or hand
-document.getElementById("hand-tool").addEventListener("click", () => {
-    tool = "hand";
-});
+// Initialize the canvas and the map
+window.onload = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    redrawCanvas();
+};
