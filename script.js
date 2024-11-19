@@ -6,37 +6,22 @@ canvas.height = 600;
 
 // Variables
 let currentMap = "images/fort-map.png"; // Default map
-let isDrawing = false;
 let drawColor = "#000000";
-let drawThickness = 2; // Default thickness
+let drawThickness = 2;
 let activeTool = "pencil"; // Default tool
-let mapImage = new Image();
-let panOffset = { x: 0, y: 0 }; // Panning offset
-let zoomScale = 1; // Zoom level
-let startPos = null; // Start position for dragging
+let isDragging = false;
+let isDrawing = false;
+let startPos = { x: 0, y: 0 };
+let panOffset = { x: 0, y: 0 };
+let zoomScale = 1;
+const mapImage = new Image();
 
-// Function to load and draw the map image
-function loadMapImage(mapPath) {
-    mapImage = new Image();
-    mapImage.onload = () => {
-        // Ensure the map is drawn at the correct position
-        drawMap();
-    };
-    mapImage.src = mapPath;
-}
-
-// Function to draw the map with pan and zoom
-function drawMap() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.setTransform(zoomScale, 0, 0, zoomScale, panOffset.x, panOffset.y);
-    ctx.drawImage(mapImage, 0, 0, mapImage.width, mapImage.height);
-}
-
-// Initial map load
-loadMapImage(currentMap);
+// Load default map
+mapImage.src = currentMap;
+mapImage.onload = () => drawMap();
 
 // Utility Drag-and-Drop
-document.querySelectorAll(".utility").forEach(utility => {
+document.querySelectorAll(".utility").forEach((utility) => {
     utility.addEventListener("mousedown", (e) => {
         const img = new Image();
         img.src = utility.src;
@@ -63,62 +48,83 @@ document.querySelectorAll(".utility").forEach(utility => {
 
 // Drawing
 canvas.addEventListener("mousedown", (e) => {
-    if (activeTool !== "pencil") return;
-    isDrawing = true;
-    ctx.beginPath();
-    ctx.moveTo((e.offsetX - panOffset.x) / zoomScale, (e.offsetY - panOffset.y) / zoomScale);
+    if (activeTool === "pencil") {
+        isDrawing = true;
+        ctx.beginPath();
+        ctx.moveTo(
+            (e.offsetX - panOffset.x) / zoomScale,
+            (e.offsetY - panOffset.y) / zoomScale
+        );
+    } else if (activeTool === "hand") {
+        isDragging = true;
+        startPos = { x: e.offsetX, y: e.offsetY };
+    }
 });
 
 canvas.addEventListener("mousemove", (e) => {
     if (isDrawing && activeTool === "pencil") {
-        ctx.lineTo((e.offsetX - panOffset.x) / zoomScale, (e.offsetY - panOffset.y) / zoomScale);
+        ctx.lineTo(
+            (e.offsetX - panOffset.x) / zoomScale,
+            (e.offsetY - panOffset.y) / zoomScale
+        );
         ctx.strokeStyle = drawColor;
         ctx.lineWidth = drawThickness / zoomScale;
         ctx.stroke();
+    } else if (isDragging && activeTool === "hand") {
+        const dx = e.offsetX - startPos.x;
+        const dy = e.offsetY - startPos.y;
+        panOffset.x += dx;
+        panOffset.y += dy;
+        startPos = { x: e.offsetX, y: e.offsetY };
+        drawMap();
     }
 });
 
 canvas.addEventListener("mouseup", () => {
     isDrawing = false;
+    isDragging = false;
 });
 
-// Map Buttons
-document.querySelectorAll(".map-button").forEach(button => {
-    button.addEventListener("click", () => {
-        currentMap = `images/${button.id.split("-")[1]}-map.png`;
-        loadMapImage(currentMap);
-    });
-});
+// Zoom functionality
+canvas.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const scaleAmount = e.deltaY > 0 ? 0.9 : 1.1;
+    const mouseX = (e.offsetX - panOffset.x) / zoomScale;
+    const mouseY = (e.offsetY - panOffset.y) / zoomScale;
 
-// Hand Tool (for panning)
-canvas.addEventListener("mousedown", (e) => {
-    if (activeTool !== "hand") return;
-    startPos = { x: e.clientX - panOffset.x, y: e.clientY - panOffset.y };
-    canvas.style.cursor = "grabbing";
-});
+    zoomScale *= scaleAmount;
+    zoomScale = Math.min(Math.max(zoomScale, 0.5), 2); // Limit zoom
 
-canvas.addEventListener("mousemove", (e) => {
-    if (!startPos) return;
-
-    const dx = e.clientX - startPos.x;
-    const dy = e.clientY - startPos.y;
-
-    panOffset.x = dx;
-    panOffset.y = dy;
-
-    // Prevent panning out of bounds
-    panOffset.x = Math.min(Math.max(panOffset.x, canvas.width - mapImage.width * zoomScale), 0);
-    panOffset.y = Math.min(Math.max(panOffset.y, canvas.height - mapImage.height * zoomScale), 0);
+    panOffset.x -= mouseX * (scaleAmount - 1) * zoomScale;
+    panOffset.y -= mouseY * (scaleAmount - 1) * zoomScale;
 
     drawMap();
 });
 
-canvas.addEventListener("mouseup", () => {
-    startPos = null;
+// Draw map
+function drawMap() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transformations
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+    ctx.setTransform(zoomScale, 0, 0, zoomScale, panOffset.x, panOffset.y);
+    ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+}
+
+// Map Buttons
+document.querySelectorAll(".map-button").forEach((button) => {
+    button.addEventListener("click", () => {
+        const mapId = button.id.split("-")[1];
+        currentMap = `images/${mapId}-map.png`;
+        mapImage.src = currentMap;
+        mapImage.onload = () => drawMap();
+    });
+});
+
+// Tool Selection
+document.getElementById("hand-tool").addEventListener("click", () => {
+    activeTool = "hand";
     canvas.style.cursor = "grab";
 });
 
-// Pencil Tool
 document.getElementById("pencil-tool").addEventListener("click", () => {
     activeTool = "pencil";
     canvas.style.cursor = "crosshair";
@@ -127,4 +133,16 @@ document.getElementById("pencil-tool").addEventListener("click", () => {
 // Thickness Buttons
 document.getElementById("small-thickness").addEventListener("click", () => drawThickness = 2);
 document.getElementById("medium-thickness").addEventListener("click", () => drawThickness = 5);
-document.getElementById("large-thickness").addEvent
+document.getElementById("big-thickness").addEventListener("click", () => drawThickness = 8);
+
+// Color Picker
+document.getElementById("color-picker").addEventListener("input", (e) => {
+    drawColor = e.target.value;
+});
+
+// Clear Button
+document.getElementById("clear-button").addEventListener("click", () => {
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transformations
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawMap();
+});
