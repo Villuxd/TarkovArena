@@ -1,206 +1,169 @@
-// Canvas and Context
-const canvas = document.getElementById("map-canvas");
-const ctx = canvas.getContext("2d");
-canvas.width = 800;
-canvas.height = 600;
+const mapCanvas = document.getElementById('map-canvas');
+const ctx = mapCanvas.getContext('2d');
 
-// Variables
-let currentMap = "images/fort-map.png"; // Default map
-let isDrawing = false;
-let drawColor = "#000000";
-let drawThickness = 2;
-let activeTool = "pencil"; // Default tool
-let panOffset = { x: 0, y: 0 };
-let zoomScale = 1;
 let mapImage = new Image();
-let zoomOrigin = { x: 0, y: 0 }; // Zoom origin to track the zoom's center
-let grenades = []; // Array to hold the grenade objects
+let mapX = 0, mapY = 0;
+let zoom = 1;
+let zoomFactor = 0.1;
+let isDrawing = false;
+let currentTool = null;
+let currentColor = '#ff0000';
+let currentThickness = 5;
 
-// Utility Drag-and-Drop
-document.querySelectorAll(".utility").forEach(utility => {
-    utility.addEventListener("mousedown", (e) => {
-        const img = new Image();
-        img.src = utility.src;
-        img.style.position = "absolute";
-        img.style.left = e.clientX + "px";
-        img.style.top = e.clientY + "px";
-        img.classList.add("draggable");
-        document.body.appendChild(img);
+let utilityIcons = [];
 
-        const onMouseMove = (moveEvent) => {
-            img.style.left = moveEvent.clientX + "px";
-            img.style.top = moveEvent.clientY + "px";
-        };
+let smokeRadiusImage = new Image();
+let molotovRadiusImage = new Image();
 
-        const onMouseUp = () => {
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-            // After the drag ends, spawn grenade at new location on canvas
-            const newGrenade = {
-                type: utility.alt, // type of grenade (e.g., flash, smoke)
-                x: moveEvent.clientX - canvas.offsetLeft,
-                y: moveEvent.clientY - canvas.offsetTop
-            };
-            grenades.push(newGrenade);  // Store grenade in array
-            loadMapImage();  // Redraw map with grenades
-        };
+smokeRadiusImage.src = 'images/smoke-radius.png';
+molotovRadiusImage.src = 'images/molotov-radius.png';
 
-        document.addEventListener("mousemove", onMouseMove);
-        document.addEventListener("mouseup", onMouseUp);
-    });
+const width = 800;
+const height = 600;
+
+mapCanvas.width = width;
+mapCanvas.height = height;
+
+let isDragging = false;
+let lastX = 0, lastY = 0;
+
+let drawnShapes = [];
+let utilityPositions = [];
+
+function loadMap(mapName) {
+    mapImage.src = `images/${mapName}-map.png`; 
+    mapImage.onload = () => {
+        ctx.drawImage(mapImage, mapX, mapY, mapImage.width * zoom, mapImage.height * zoom);
+    };
+}
+
+document.getElementById('map-fort').addEventListener('click', () => loadMap('fort'));
+document.getElementById('map-skybridge').addEventListener('click', () => loadMap('skybridge'));
+document.getElementById('map-bowl').addEventListener('click', () => loadMap('bowl'));
+document.getElementById('map-bay5').addEventListener('click', () => loadMap('bay5'));
+
+document.getElementById('hand-tool').addEventListener('click', () => {
+    currentTool = 'hand';
+    mapCanvas.style.cursor = 'grab';
 });
 
-// Drawing
-canvas.addEventListener("mousedown", (e) => {
-    if (activeTool !== "pencil") return;
-    isDrawing = true;
-    ctx.beginPath();
-    ctx.moveTo(e.offsetX, e.offsetY);
+document.getElementById('pencil-tool').addEventListener('click', () => {
+    currentTool = 'pencil';
+    mapCanvas.style.cursor = 'crosshair';
 });
 
-canvas.addEventListener("mousemove", (e) => {
-    if (isDrawing && activeTool === "pencil") {
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.strokeStyle = drawColor;
-        ctx.lineWidth = drawThickness;
-        ctx.stroke();
+document.getElementById('color-picker').addEventListener('input', (e) => {
+    currentColor = e.target.value;
+});
+
+document.getElementById('small-thickness').addEventListener('click', () => {
+    currentThickness = 5;
+});
+
+document.getElementById('medium-thickness').addEventListener('click', () => {
+    currentThickness = 10;
+});
+
+document.getElementById('big-thickness').addEventListener('click', () => {
+    currentThickness = 15;
+});
+
+document.getElementById('clear-button').addEventListener('click', () => {
+    drawnShapes = [];
+    utilityPositions = [];
+    drawEverything();
+});
+
+mapCanvas.addEventListener('mousedown', (e) => {
+    if (currentTool === 'hand') {
+        isDragging = true;
+        lastX = e.offsetX;
+        lastY = e.offsetY;
+    } else if (currentTool === 'pencil') {
+        isDrawing = true;
+        drawnShapes.push({
+            type: 'line',
+            color: currentColor,
+            thickness: currentThickness,
+            startX: e.offsetX,
+            startY: e.offsetY,
+            endX: e.offsetX,
+            endY: e.offsetY
+        });
+        drawEverything();
     }
 });
 
-canvas.addEventListener("mouseup", () => {
+mapCanvas.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        const deltaX = e.offsetX - lastX;
+        const deltaY = e.offsetY - lastY;
+        mapX += deltaX;
+        mapY += deltaY;
+        lastX = e.offsetX;
+        lastY = e.offsetY;
+        drawEverything();
+    } else if (isDrawing) {
+        const shape = drawnShapes[drawnShapes.length - 1];
+        shape.endX = e.offsetX;
+        shape.endY = e.offsetY;
+        drawEverything();
+    }
+});
+
+mapCanvas.addEventListener('mouseup', () => {
+    isDragging = false;
     isDrawing = false;
 });
 
-// Map Buttons
-const mapButtons = document.querySelectorAll(".map-button");
-mapButtons.forEach(button => {
-    button.addEventListener("click", () => {
-        currentMap = `images/${button.id.split("-")[1]}-map.png`;
-        loadMapImage();
-    });
+mapCanvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const zoomDirection = e.deltaY < 0 ? 1 : -1;
+    zoom = Math.min(Math.max(zoom + zoomDirection * zoomFactor, 0.5), 3);
+    drawEverything();
 });
 
-// Load map image
-function loadMapImage() {
-    mapImage = new Image();
-    mapImage.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous drawing
-        ctx.setTransform(zoomScale, 0, 0, zoomScale, panOffset.x, panOffset.y); // Apply zoom and pan
-        ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
-        // Draw grenades
-        grenades.forEach(grenade => {
-            const grenadeImg = new Image();
-            grenadeImg.src = `images/${grenade.type}-icon.png`;
-            grenadeImg.onload = () => {
-                // Adapt grenade size to zoom level
-                const size = 40 * zoomScale; // Adjust size based on zoom level
-                ctx.drawImage(grenadeImg, grenade.x - size / 2, grenade.y - size / 2, size, size);
-            };
-        });
-    };
-    mapImage.src = currentMap;
+function drawEverything() {
+    ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+    ctx.drawImage(mapImage, mapX, mapY, mapImage.width * zoom, mapImage.height * zoom);
+    for (const shape of drawnShapes) {
+        ctx.beginPath();
+        ctx.moveTo(shape.startX, shape.startY);
+        ctx.lineTo(shape.endX, shape.endY);
+        ctx.strokeStyle = shape.color;
+        ctx.lineWidth = shape.thickness;
+        ctx.stroke();
+    }
+    for (const icon of utilityPositions) {
+        ctx.drawImage(icon.image, icon.x, icon.y, icon.image.width * zoom, icon.image.height * zoom);
+    }
 }
 
-// Hand Tool
-document.getElementById("hand-tool").addEventListener("click", () => {
-    activeTool = "hand";
-    canvas.style.cursor = "grab";
-});
-
-// Pencil Tool
-document.getElementById("pencil-tool").addEventListener("click", () => {
-    activeTool = "pencil";
-    canvas.style.cursor = "crosshair";
-});
-
-// Thickness
-document.getElementById("small-thickness").addEventListener("click", () => drawThickness = 2);
-document.getElementById("medium-thickness").addEventListener("click", () => drawThickness = 5);
-document.getElementById("big-thickness").addEventListener("click", () => drawThickness = 8);
-
-// Color Picker
-document.getElementById("color-picker").addEventListener("input", (e) => {
-    drawColor = e.target.value;
-});
-
-// Clear Button
-document.getElementById("clear-button").addEventListener("click", () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    loadMapImage(); // Reload map to clear all elements
-    grenades = []; // Clear grenades
-});
-
-// Zoom and Pan functionality
-canvas.addEventListener("wheel", (e) => {
-    e.preventDefault();
-    let zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
-    zoomScale *= zoomFactor;
-
-    // Ensure zoom level stays within a reasonable range
-    zoomScale = Math.max(0.5, Math.min(zoomScale, 2));
-
-    // Get the mouse position relative to the canvas and zoom
-    zoomOrigin = { x: e.offsetX, y: e.offsetY };
-
-    loadMapImage();
-});
-
-// Pan functionality (hand tool)
-canvas.addEventListener("mousedown", (e) => {
-    if (activeTool !== "hand") return;
-
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startPanOffset = { ...panOffset };
-
-    const onMouseMove = (moveEvent) => {
-        const dx = moveEvent.clientX - startX;
-        const dy = moveEvent.clientY - startY;
-        panOffset = { x: startPanOffset.x + dx, y: startPanOffset.y + dy };
-        loadMapImage();  // Re-render map with updated pan position
-    };
-
-    const onMouseUp = () => {
-        document.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("mouseup", onMouseUp);
-    };
-
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-});
-
-// Drag and Drop for grenades (Updated)
-document.querySelectorAll(".utility").forEach(utility => {
-    utility.addEventListener("mousedown", (e) => {
-        const img = new Image();
-        img.src = utility.src;
-        img.style.position = "absolute";
-        img.style.left = e.clientX + "px";
-        img.style.top = e.clientY + "px";
-        img.classList.add("draggable");
-        document.body.appendChild(img);
-
-        const onMouseMove = (moveEvent) => {
-            img.style.left = moveEvent.clientX + "px";
-            img.style.top = moveEvent.clientY + "px";
-        };
-
-        const onMouseUp = (moveEvent) => {
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-
-            // Place grenade on canvas at mouse position
-            const newGrenade = {
-                type: utility.alt,
-                x: moveEvent.clientX - canvas.offsetLeft,
-                y: moveEvent.clientY - canvas.offsetTop
-            };
-
-            grenades.push(newGrenade);  // Store grenade in array
-            loadMapImage();  // Redraw map with grenades
-        };
-
-        document.addEventListener("mousemove", onMouseMove);
-        document.addEventListener("mouseup", onMouseUp);
+function addUtilityIcon(image, x, y) {
+    utilityPositions.push({
+        image: image,
+        x: x,
+        y: y
     });
+    drawEverything();
+}
+
+document.getElementById('flash-icon').addEventListener('click', () => {
+    const flashIcon = new Image();
+    flashIcon.src = 'images/flash-icon.png';
+    flashIcon.onload = () => addUtilityIcon(flashIcon, 100, 100); // Example position
+});
+
+document.getElementById('smoke-icon').addEventListener('click', () => {
+    addUtilityIcon(smokeRadiusImage, 200, 200); // Use the smoke radius image
+});
+
+document.getElementById('molotov-icon').addEventListener('click', () => {
+    addUtilityIcon(molotovRadiusImage, 300, 300); // Use the molotov radius image
+});
+
+document.getElementById('frag-icon').addEventListener('click', () => {
+    const fragIcon = new Image();
+    fragIcon.src = 'images/frag-icon.png';
+    fragIcon.onload = () => addUtilityIcon(fragIcon, 400, 400); // Example position
 });
