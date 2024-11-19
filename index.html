@@ -3,43 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Map Utility Planner</title>
+    <title>Map Drawing and Grenades</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="container">
-        <div id="utility-container">
-            <img id="flash-icon" class="utility" src="images/flash-icon.png" alt="Flash">
-            <img id="smoke-icon" class="utility" src="images/smoke-icon.png" alt="Smoke">
-            <img id="molotov-icon" class="utility" src="images/molotov-icon.png" alt="Molotov">
-            <img id="frag-icon" class="utility" src="images/frag-icon.png" alt="Frag">
+    <div class="controls">
+        <button class="map-button" id="map-fort">Fort</button>
+        <button class="map-button" id="map-bay5">Bay 5</button>
+        <button class="map-button" id="map-bowl">Bowl</button>
+        <button class="map-button" id="map-skybridge">Skybridge</button>
+        <button id="hand-tool">Hand Tool</button>
+        <button id="pencil-tool">Pencil Tool</button>
+
+        <div>
+            <button id="small-thickness">Small Thickness</button>
+            <button id="medium-thickness">Medium Thickness</button>
+            <button id="big-thickness">Big Thickness</button>
         </div>
 
-        <div id="map-container">
-            <canvas id="map-canvas"></canvas>
-        </div>
-
-        <div id="tools-container">
-            <button id="map-fort" class="map-button">Fort</button>
-            <button id="map-skybridge" class="map-button">Skybridge</button>
-            <button id="map-bowl" class="map-button">Bowl</button>
-            <button id="map-bay5" class="map-button">Bay5</button>
-        </div>
-
-        <div id="bottom-tools">
-            <button id="hand-tool" class="tool-button">
-                <img src="images/hand-icon.png" alt="Hand Tool">
-            </button>
-            <button id="pencil-tool" class="tool-button">
-                <img src="images/pencil-icon.png" alt="Pencil Tool">
-            </button>
-            <input type="color" id="color-picker">
-            <button id="small-thickness"><img src="images/small-thickness-icon.png" alt="Small"></button>
-            <button id="medium-thickness"><img src="images/medium-thickness-icon.png" alt="Medium"></button>
-            <button id="big-thickness"><img src="images/big-thickness-icon.png" alt="Big"></button>
-            <button id="clear-button">Clear Everything</button>
-        </div>
+        <input type="color" id="color-picker" value="#000000">
+        <button id="clear-button">Clear</button>
     </div>
+
+    <div id="map-container">
+        <canvas id="map-canvas"></canvas>
+    </div>
+
+    <div class="tools">
+        <img src="images/flash-icon.png" alt="Flash" class="utility" id="flash-tool">
+        <img src="images/smoke-icon.png" alt="Smoke" class="utility" id="smoke-tool">
+        <img src="images/molotov-icon.png" alt="Molotov" class="utility" id="molotov-tool">
+        <img src="images/frag-icon.png" alt="Frag" class="utility" id="frag-tool">
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

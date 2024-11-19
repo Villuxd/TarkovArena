@@ -11,10 +11,10 @@ let drawColor = "#000000";
 let drawThickness = 2;
 let activeTool = "pencil"; // Default tool
 let panOffset = { x: 0, y: 0 };
-let startPos = null;
 let zoomScale = 1;
 let mapImage = new Image();
 let zoomOrigin = { x: 0, y: 0 }; // Zoom origin to track the zoom's center
+let grenades = []; // Array to hold the grenade objects
 
 // Utility Drag-and-Drop
 document.querySelectorAll(".utility").forEach(utility => {
@@ -35,6 +35,14 @@ document.querySelectorAll(".utility").forEach(utility => {
         const onMouseUp = () => {
             document.removeEventListener("mousemove", onMouseMove);
             document.removeEventListener("mouseup", onMouseUp);
+            // After the drag ends, spawn grenade at new location on canvas
+            const newGrenade = {
+                type: utility.alt, // type of grenade (e.g., flash, smoke)
+                x: moveEvent.clientX - canvas.offsetLeft,
+                y: moveEvent.clientY - canvas.offsetTop
+            };
+            grenades.push(newGrenade);  // Store grenade in array
+            loadMapImage();  // Redraw map with grenades
         };
 
         document.addEventListener("mousemove", onMouseMove);
@@ -79,6 +87,16 @@ function loadMapImage() {
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous drawing
         ctx.setTransform(zoomScale, 0, 0, zoomScale, panOffset.x, panOffset.y); // Apply zoom and pan
         ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+        // Draw grenades
+        grenades.forEach(grenade => {
+            const grenadeImg = new Image();
+            grenadeImg.src = `images/${grenade.type}-icon.png`;
+            grenadeImg.onload = () => {
+                // Adapt grenade size to zoom level
+                const size = 40 * zoomScale; // Adjust size based on zoom level
+                ctx.drawImage(grenadeImg, grenade.x - size / 2, grenade.y - size / 2, size, size);
+            };
+        });
     };
     mapImage.src = currentMap;
 }
@@ -109,6 +127,7 @@ document.getElementById("color-picker").addEventListener("input", (e) => {
 document.getElementById("clear-button").addEventListener("click", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     loadMapImage(); // Reload map to clear all elements
+    grenades = []; // Clear grenades
 });
 
 // Zoom and Pan functionality
@@ -120,22 +139,68 @@ canvas.addEventListener("wheel", (e) => {
     // Ensure zoom level stays within a reasonable range
     zoomScale = Math.max(0.5, Math.min(zoomScale, 2));
 
-    // Get the mouse position relative to the canvas
-    zoomOrigin = {
-        x: e.offsetX / canvas.width,
-        y: e.offsetY / canvas.height
-    };
+    // Get the mouse position relative to the canvas and zoom
+    zoomOrigin = { x: e.offsetX, y: e.offsetY };
 
     loadMapImage();
 });
 
-canvas.addEventListener("mousemove", (e) => {
-    if (activeTool === "hand" && e.buttons === 1) {
-        panOffset.x += e.movementX;
-        panOffset.y += e.movementY;
-        loadMapImage();
-    }
+// Pan functionality (hand tool)
+canvas.addEventListener("mousedown", (e) => {
+    if (activeTool !== "hand") return;
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startPanOffset = { ...panOffset };
+
+    const onMouseMove = (moveEvent) => {
+        const dx = moveEvent.clientX - startX;
+        const dy = moveEvent.clientY - startY;
+        panOffset = { x: startPanOffset.x + dx, y: startPanOffset.y + dy };
+        loadMapImage();  // Re-render map with updated pan position
+    };
+
+    const onMouseUp = () => {
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+    };
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
 });
 
-// Initial map load
-loadMapImage();
+// Drag and Drop for grenades (Updated)
+document.querySelectorAll(".utility").forEach(utility => {
+    utility.addEventListener("mousedown", (e) => {
+        const img = new Image();
+        img.src = utility.src;
+        img.style.position = "absolute";
+        img.style.left = e.clientX + "px";
+        img.style.top = e.clientY + "px";
+        img.classList.add("draggable");
+        document.body.appendChild(img);
+
+        const onMouseMove = (moveEvent) => {
+            img.style.left = moveEvent.clientX + "px";
+            img.style.top = moveEvent.clientY + "px";
+        };
+
+        const onMouseUp = (moveEvent) => {
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+
+            // Place grenade on canvas at mouse position
+            const newGrenade = {
+                type: utility.alt,
+                x: moveEvent.clientX - canvas.offsetLeft,
+                y: moveEvent.clientY - canvas.offsetTop
+            };
+
+            grenades.push(newGrenade);  // Store grenade in array
+            loadMapImage();  // Redraw map with grenades
+        };
+
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+    });
+});
