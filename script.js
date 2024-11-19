@@ -5,13 +5,26 @@ canvas.width = 800;
 canvas.height = 600;
 
 // Variables
-let currentMap = "images/fort.png"; // Default map
+let currentMap = "images/fort-map.png"; // Default map
 let isDrawing = false;
 let drawColor = "#000000";
-let drawThickness = 2;
+let drawThickness = 2; // Default thickness
 let activeTool = "pencil"; // Default tool
 let panOffset = { x: 0, y: 0 };
 let startPos = null;
+
+// Function to load and draw the map image
+function loadMapImage(mapPath) {
+    const mapImage = new Image();
+    mapImage.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before drawing new map
+        ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height); // Draw the image scaled to the canvas
+    };
+    mapImage.src = mapPath;
+}
+
+// Initial map load
+loadMapImage(currentMap);
 
 // Utility Drag-and-Drop
 document.querySelectorAll(".utility").forEach(utility => {
@@ -64,10 +77,8 @@ canvas.addEventListener("mouseup", () => {
 const mapButtons = document.querySelectorAll(".map-button");
 mapButtons.forEach(button => {
     button.addEventListener("click", () => {
-        currentMap = `images/${button.id.split("-")[1]}.png`;
-        const mapImage = new Image();
-        mapImage.onload = () => ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
-        mapImage.src = currentMap;
+        currentMap = `images/${button.id.split("-")[1]}-map.png`;
+        loadMapImage(currentMap); // Load the selected map
     });
 });
 
@@ -83,10 +94,18 @@ document.getElementById("pencil-tool").addEventListener("click", () => {
     canvas.style.cursor = "crosshair";
 });
 
-// Thickness
-document.getElementById("small-thickness").addEventListener("click", () => drawThickness = 2);
-document.getElementById("medium-thickness").addEventListener("click", () => drawThickness = 5);
-document.getElementById("big-thickness").addEventListener("click", () => drawThickness = 8);
+// Thickness Icons
+document.getElementById("small-thickness").addEventListener("click", () => {
+    drawThickness = 2; // Small thickness
+});
+
+document.getElementById("medium-thickness").addEventListener("click", () => {
+    drawThickness = 5; // Medium thickness
+});
+
+document.getElementById("large-thickness").addEventListener("click", () => {
+    drawThickness = 8; // Large thickness
+});
 
 // Color Picker
 document.getElementById("color-picker").addEventListener("input", (e) => {
@@ -105,7 +124,5 @@ canvas.addEventListener("wheel", (e) => {
     zoomScale += e.deltaY * -0.01;
     zoomScale = Math.min(Math.max(zoomScale, 0.5), 2); // Limit zoom
     ctx.setTransform(zoomScale, 0, 0, zoomScale, 0, 0);
-    const mapImage = new Image();
-    mapImage.src = currentMap;
-    mapImage.onload = () => ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+    loadMapImage(currentMap); // Reload map after zoom
 });
