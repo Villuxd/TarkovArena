@@ -14,7 +14,6 @@ body {
 
 #utility-container {
     display: flex;
-    flex-direction: column;
     gap: 10px;
     position: absolute;
     top: 50px;
@@ -22,7 +21,7 @@ body {
 }
 
 .utility {
-    width: 40px;
+    width: 30px;
     cursor: pointer;
 }
 
@@ -32,7 +31,6 @@ body {
     width: 800px;
     height: 600px;
     border: 2px solid #555;
-    overflow: hidden;
 }
 
 #map-canvas {
@@ -77,16 +75,19 @@ body {
     height: 30px;
 }
 
-.thickness-button img {
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-}
-
 #color-picker {
     border: none;
     padding: 0;
     height: 30px;
     width: 40px;
+    cursor: pointer;
+}
+
+.thickness-btn img {
+    width: 25px;
+    height: 25px;
+}
+
+button {
     cursor: pointer;
 }
