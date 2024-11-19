@@ -83,13 +83,15 @@ canvas.addEventListener("mouseup", () => {
 canvas.addEventListener("wheel", (e) => {
     e.preventDefault();
     const zoomDelta = e.deltaY * -0.01;
+    const prevZoomScale = zoomScale;
     zoomScale = Math.min(Math.max(zoomScale + zoomDelta, 0.5), 2);
 
-    const cursorX = (e.offsetX - panOffset.x) / zoomScale;
-    const cursorY = (e.offsetY - panOffset.y) / zoomScale;
+    // Keep the zoom centered on cursor
+    const cursorX = (e.offsetX - panOffset.x) / prevZoomScale;
+    const cursorY = (e.offsetY - panOffset.y) / prevZoomScale;
 
-    panOffset.x -= cursorX * zoomDelta;
-    panOffset.y -= cursorY * zoomDelta;
+    panOffset.x -= cursorX * (zoomScale - prevZoomScale);
+    panOffset.y -= cursorY * (zoomScale - prevZoomScale);
 
     drawCanvas();
 });
@@ -124,9 +126,17 @@ function fitMapToCanvas() {
 }
 
 function drawCanvas() {
+    // Reset transformation before each draw
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Apply zoom and pan
     ctx.setTransform(zoomScale, 0, 0, zoomScale, panOffset.x, panOffset.y);
-    ctx.clearRect(-panOffset.x, -panOffset.y, canvas.width / zoomScale, canvas.height / zoomScale);
+    
+    // Draw the map
     ctx.drawImage(mapImage, 0, 0, canvas.width / zoomScale, canvas.height / zoomScale);
+
+    // Draw elements
     elements.forEach(element => {
         if (element.type === "utility") {
             ctx.drawImage(element.img, element.x, element.y, element.width, element.height);
