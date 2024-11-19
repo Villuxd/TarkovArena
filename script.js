@@ -3,168 +3,144 @@ const ctx = canvas.getContext("2d");
 canvas.width = 800;
 canvas.height = 600;
 
-let currentMap = "images/fort-map.png";
+let currentMap = "images/fort-map.png"; // Default map
+let isDrawing = false;
 let drawColor = "#000000";
 let drawThickness = 2;
-let activeTool = "pencil";
-let isDragging = false;
-let isDrawing = false;
-let draggingUtility = null;
-let startPos = { x: 0, y: 0 };
+let activeTool = "pencil"; // Default tool
 let panOffset = { x: 0, y: 0 };
+let startPos = null;
+
 let zoomScale = 1;
-const mapImage = new Image();
-const drawings = [];
-const utilities = [];
+let zoomOffset = { x: 0, y: 0 };
+let isDragging = false;
+let dragStart = { x: 0, y: 0 };
 
-mapImage.src = currentMap;
-mapImage.onload = () => drawMap();
-
-// Set up the utility buttons
-document.querySelectorAll(".utility").forEach((utility) => {
+document.querySelectorAll(".utility").forEach(utility => {
     utility.addEventListener("mousedown", (e) => {
         const img = new Image();
         img.src = utility.src;
+        img.style.position = "absolute";
+        img.style.left = e.clientX + "px";
+        img.style.top = e.clientY + "px";
+        img.classList.add("draggable");
+        document.body.appendChild(img);
 
-        const worldX = (e.offsetX - panOffset.x) / zoomScale;
-        const worldY = (e.offsetY - panOffset.y) / zoomScale;
+        const onMouseMove = (moveEvent) => {
+            img.style.left = moveEvent.clientX + "px";
+            img.style.top = moveEvent.clientY + "px";
+        };
 
-        if (utility.id === "smoke-icon") {
-            utilities.push({ type: "smoke", x: worldX, y: worldY, radius: 100 });
-        } else if (utility.id === "molotov-icon") {
-            utilities.push({ type: "molotov", x: worldX, y: worldY, radius: 80 });
-        } else {
-            utilities.push({ type: "icon", img, x: worldX, y: worldY });
-        }
+        const onMouseUp = () => {
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+        };
 
-        drawMap();
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
     });
 });
 
-// Handle the canvas mouse events
 canvas.addEventListener("mousedown", (e) => {
-    const mouseX = (e.offsetX - panOffset.x) / zoomScale;
-    const mouseY = (e.offsetY - panOffset.y) / zoomScale;
-
-    utilities.forEach((utility) => {
-        if (utility.type === "icon") {
-            const size = 30 / zoomScale;
-            if (
-                mouseX >= utility.x &&
-                mouseX <= utility.x + size &&
-                mouseY >= utility.y &&
-                mouseY <= utility.y + size
-            ) {
-                draggingUtility = utility;
-            }
-        }
-    });
-
-    if (activeTool === "pencil" && !draggingUtility) {
-        isDrawing = true;
-        drawings.push({
-            tool: "pencil",
-            color: drawColor,
-            thickness: drawThickness,
-            points: [{ x: mouseX, y: mouseY }]
-        });
-    } else if (activeTool === "hand" && !draggingUtility) {
+    if (activeTool === "hand" && !isDrawing) {
         isDragging = true;
-        startPos = { x: e.offsetX, y: e.offsetY };
+        dragStart.x = e.offsetX - zoomOffset.x;
+        dragStart.y = e.offsetY - zoomOffset.y;
+        canvas.style.cursor = "grabbing";
+    } else if (activeTool === "pencil") {
+        isDrawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
     }
 });
 
 canvas.addEventListener("mousemove", (e) => {
-    const mouseX = (e.offsetX - panOffset.x) / zoomScale;
-    const mouseY = (e.offsetY - panOffset.y) / zoomScale;
+    if (isDrawing && activeTool === "pencil") {
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.strokeStyle = drawColor;
+        ctx.lineWidth = drawThickness;
+        ctx.stroke();
+    }
 
-    if (isDrawing) {
-        const currentDrawing = drawings[drawings.length - 1];
-        currentDrawing.points.push({ x: mouseX, y: mouseY });
-        drawMap();
-    } else if (isDragging) {
-        const dx = e.offsetX - startPos.x;
-        const dy = e.offsetY - startPos.y;
-
-        panOffset.x += dx;
-        panOffset.y += dy;
-        constrainPanOffset();
-        startPos = { x: e.offsetX, y: e.offsetY };
-        drawMap();
-    } else if (draggingUtility) {
-        draggingUtility.x = mouseX;
-        draggingUtility.y = mouseY;
-        drawMap();
+    if (isDragging) {
+        zoomOffset.x = e.offsetX - dragStart.x;
+        zoomOffset.y = e.offsetY - dragStart.y;
+        redrawMap();
     }
 });
 
 canvas.addEventListener("mouseup", () => {
     isDrawing = false;
     isDragging = false;
-    draggingUtility = null;
+    canvas.style.cursor = "grab";
 });
 
-// Zooming functionality
+const mapButtons = document.querySelectorAll(".map-button");
+mapButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        currentMap = `images/${button.id.split("-")[1]}-map.png`;
+        redrawMap();
+    });
+});
+
+document.getElementById("hand-tool").addEventListener("click", () => {
+    activeTool = "hand";
+    canvas.style.cursor = "grab";
+});
+
+document.getElementById("pencil-tool").addEventListener("click", () => {
+    activeTool = "pencil";
+    canvas.style.cursor = "crosshair";
+});
+
+document.getElementById("small-thickness").addEventListener("click", () => drawThickness = 2);
+document.getElementById("medium-thickness").addEventListener("click", () => drawThickness = 5);
+document.getElementById("big-thickness").addEventListener("click", () => drawThickness = 8);
+
+document.getElementById("color-picker").addEventListener("input", (e) => {
+    drawColor = e.target.value;
+});
+
+document.getElementById("clear-button").addEventListener("click", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    redrawMap();
+});
+
 canvas.addEventListener("wheel", (e) => {
     e.preventDefault();
-    const scaleAmount = e.deltaY > 0 ? 0.9 : 1.1;
-    const mouseX = (e.offsetX - panOffset.x) / zoomScale;
-    const mouseY = (e.offsetY - panOffset.y) / zoomScale;
-
-    zoomScale *= scaleAmount;
-    zoomScale = Math.min(Math.max(zoomScale, 0.5), 2);
-
-    panOffset.x -= mouseX * (scaleAmount - 1) * zoomScale;
-    panOffset.y -= mouseY * (scaleAmount - 1) * zoomScale;
-    constrainPanOffset();
-    drawMap();
+    zoomScale += e.deltaY * -0.01;
+    zoomScale = Math.min(Math.max(zoomScale, 0.5), 2); // Limit zoom
+    redrawMap();
 });
 
-function constrainPanOffset() {
-    const scaledWidth = canvas.width * zoomScale;
-    const scaledHeight = canvas.height * zoomScale;
-
-    panOffset.x = Math.min(0, Math.max(panOffset.x, canvas.width - scaledWidth));
-    panOffset.y = Math.min(0, Math.max(panOffset.y, canvas.height - scaledHeight));
+function redrawMap() {
+    const mapImage = new Image();
+    mapImage.src = currentMap;
+    mapImage.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.setTransform(zoomScale, 0, 0, zoomScale, zoomOffset.x, zoomOffset.y);
+        ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+    };
 }
 
-function drawMap() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.save();
-    ctx.translate(panOffset.x, panOffset.y);
-    ctx.scale(zoomScale, zoomScale);
-    ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
-
-    // Draw the utilities (smoke, molotov, icons)
-    utilities.forEach((utility) => {
-        if (utility.type === "smoke") {
-            ctx.beginPath();
-            ctx.arc(utility.x, utility.y, utility.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(100, 100, 100, 0.5)";
-            ctx.fill();
-        } else if (utility.type === "molotov") {
-            ctx.beginPath();
-            ctx.arc(utility.x, utility.y, utility.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(255, 140, 0, 0.5)";
-            ctx.fill();
-        } else if (utility.type === "icon") {
-            const size = 30 / zoomScale;
-            ctx.drawImage(utility.img, utility.x, utility.y, size, size);
-        }
-    });
-
-    // Draw the pencil tool's drawings
-    drawings.forEach((drawing) => {
-        ctx.beginPath();
-        ctx.moveTo(drawing.points[0].x, drawing.points[0].y);
-        drawing.points.forEach((point) => {
-            ctx.lineTo(point.x, point.y);
-        });
-        ctx.strokeStyle = drawing.color;
-        ctx.lineWidth = drawing.thickness;
-        ctx.stroke();
-    });
-
-    ctx.restore();
+function resizeUtilityIcon(img) {
+    img.style.width = `${img.width * zoomScale}px`;
+    img.style.height = `${img.height * zoomScale}px`;
 }
+
+function redrawUtilityIcons() {
+    document.querySelectorAll(".utility").forEach(icon => {
+        const img = new Image();
+        img.src = icon.src;
+        img.onload = () => resizeUtilityIcon(img);
+    });
+}
+
+// To fix the issue when zooming out or in, we ensure the icons scale correctly.
+canvas.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    zoomScale += e.deltaY * -0.01;
+    zoomScale = Math.min(Math.max(zoomScale, 0.5), 2); // Limit zoom
+    redrawMap();
+    redrawUtilityIcons();
+});
