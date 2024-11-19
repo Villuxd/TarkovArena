@@ -14,7 +14,6 @@ body {
 
 #utility-container {
     display: flex;
-    flex-direction: column;
     gap: 10px;
     position: absolute;
     top: 50px;
@@ -22,7 +21,7 @@ body {
 }
 
 .utility {
-    width: 50px;
+    width: 40px;
     cursor: pointer;
 }
 

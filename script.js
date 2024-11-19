@@ -20,6 +20,7 @@ const utilities = [];
 mapImage.src = currentMap;
 mapImage.onload = () => drawMap();
 
+// Set up the utility buttons
 document.querySelectorAll(".utility").forEach((utility) => {
     utility.addEventListener("mousedown", (e) => {
         const img = new Image();
@@ -40,6 +41,7 @@ document.querySelectorAll(".utility").forEach((utility) => {
     });
 });
 
+// Handle the canvas mouse events
 canvas.addEventListener("mousedown", (e) => {
     const mouseX = (e.offsetX - panOffset.x) / zoomScale;
     const mouseY = (e.offsetY - panOffset.y) / zoomScale;
@@ -102,6 +104,7 @@ canvas.addEventListener("mouseup", () => {
     draggingUtility = null;
 });
 
+// Zooming functionality
 canvas.addEventListener("wheel", (e) => {
     e.preventDefault();
     const scaleAmount = e.deltaY > 0 ? 0.9 : 1.1;
@@ -133,31 +136,17 @@ function drawMap() {
     ctx.scale(zoomScale, zoomScale);
     ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
 
-    drawings.forEach((drawing) => {
-        ctx.strokeStyle = drawing.color;
-        ctx.lineWidth = drawing.thickness / zoomScale;
-        ctx.beginPath();
-        drawing.points.forEach((point, index) => {
-            const { x, y } = point;
-            if (index === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-        });
-        ctx.stroke();
-    });
-
+    // Draw the utilities (smoke, molotov, icons)
     utilities.forEach((utility) => {
         if (utility.type === "smoke") {
-            ctx.fillStyle = "rgba(128, 128, 128, 0.5)";
             ctx.beginPath();
-            ctx.arc(utility.x, utility.y, utility.radius / zoomScale, 0, 2 * Math.PI);
+            ctx.arc(utility.x, utility.y, utility.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(100, 100, 100, 0.5)";
             ctx.fill();
         } else if (utility.type === "molotov") {
-            ctx.fillStyle = "rgba(255, 69, 0, 0.5)";
             ctx.beginPath();
-            ctx.arc(utility.x, utility.y, utility.radius / zoomScale, 0, 2 * Math.PI);
+            ctx.arc(utility.x, utility.y, utility.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(255, 140, 0, 0.5)";
             ctx.fill();
         } else if (utility.type === "icon") {
             const size = 30 / zoomScale;
@@ -165,43 +154,17 @@ function drawMap() {
         }
     });
 
+    // Draw the pencil tool's drawings
+    drawings.forEach((drawing) => {
+        ctx.beginPath();
+        ctx.moveTo(drawing.points[0].x, drawing.points[0].y);
+        drawing.points.forEach((point) => {
+            ctx.lineTo(point.x, point.y);
+        });
+        ctx.strokeStyle = drawing.color;
+        ctx.lineWidth = drawing.thickness;
+        ctx.stroke();
+    });
+
     ctx.restore();
 }
-
-document.getElementById("color-picker").addEventListener("input", (e) => {
-    drawColor = e.target.value;
-});
-
-document.getElementById("small-thickness").addEventListener("click", () => {
-    drawThickness = 2;
-});
-
-document.getElementById("medium-thickness").addEventListener("click", () => {
-    drawThickness = 5;
-});
-
-document.getElementById("big-thickness").addEventListener("click", () => {
-    drawThickness = 8;
-});
-
-document.getElementById("clear-button").addEventListener("click", () => {
-    drawings.length = 0;
-    utilities.length = 0;
-    drawMap();
-});
-
-document.querySelectorAll(".map-button").forEach((button) => {
-    button.addEventListener("click", () => {
-        currentMap = `images/${button.id.replace("map-", "")}-map.png`;
-        mapImage.src = currentMap;
-        mapImage.onload = () => drawMap();
-    });
-});
-
-document.getElementById("hand-tool").addEventListener("click", () => {
-    activeTool = "hand";
-});
-
-document.getElementById("pencil-tool").addEventListener("click", () => {
-    activeTool = "pencil";
-});
